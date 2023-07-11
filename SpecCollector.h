@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <curl.h>
+#include <json/json.h>
 #include "base64.h"
 
 class SpecCollector {

@@ -9,7 +9,7 @@ static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* use
 std::string SpecCollector::getSpec(std::string branch, std::string name) {
     std::string host = "https://rdb.altlinux.org/api/package/specfile_by_name";
     std::string req = host + "?" + "branch=" + branch + "&" + "name=" + name;
-    std::cout << "\n" << req << "\n";
+    //std::cout << "\n" << req << "\n";
 
     // Запрос на получение spec к API
     CURL* curl;
@@ -27,11 +27,18 @@ std::string SpecCollector::getSpec(std::string branch, std::string name) {
         //std::cout << readBuffer << std::endl;
     }
 
-    // TODO: спарсить json из readBuffer и добавить в content значение specfile_content
-    // В Альте поддерживается jsoncpp, рекомендую использовать его
+    Json::Value root;
+    Json::Reader reader;
+    bool parser_success = reader.parse(readBuffer, root);
+    if (!parser_success) {
+        std::cout << "JSON parser error\n";
+        return "";
+    }
 
-    std::string content = "";
+    std::string content = root["specfile_content"].asString();
     std::string result = base64_decode(content);
+
+    //std::cout << "result:\n" << result;
 
     return result;
 }

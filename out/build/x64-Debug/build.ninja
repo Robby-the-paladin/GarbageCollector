@@ -45,7 +45,7 @@ build cmake_object_order_depends_target_GarbageCollector: phony || CMakeFiles\Ga
 
 build CMakeFiles\GarbageCollector.dir\main.cpp.obj: CXX_COMPILER__GarbageCollector_Debug ..\..\..\main.cpp || cmake_object_order_depends_target_GarbageCollector
   FLAGS = /DWIN32 /D_WINDOWS /EHsc /Zi /Ob0 /Od /RTC1 -MDd -std:c++17
-  INCLUDES = -IC:\Users\mea25\Desktop\Scala\vcpkg\installed\x64-windows\include -IC:\Users\mea25\Desktop\Scala\vcpkg\installed\x64-windows\include\curl
+  INCLUDES = -IC:\Users\mea25\Desktop\Scala\vcpkg\installed\x64-windows\include\curl -IC:\Users\mea25\Desktop\Scala\vcpkg\installed\x64-windows\include
   OBJECT_DIR = CMakeFiles\GarbageCollector.dir
   OBJECT_FILE_DIR = CMakeFiles\GarbageCollector.dir
   TARGET_COMPILE_PDB = CMakeFiles\GarbageCollector.dir\
@@ -53,7 +53,7 @@ build CMakeFiles\GarbageCollector.dir\main.cpp.obj: CXX_COMPILER__GarbageCollect
 
 build CMakeFiles\GarbageCollector.dir\SpecCollector.cpp.obj: CXX_COMPILER__GarbageCollector_Debug ..\..\..\SpecCollector.cpp || cmake_object_order_depends_target_GarbageCollector
   FLAGS = /DWIN32 /D_WINDOWS /EHsc /Zi /Ob0 /Od /RTC1 -MDd -std:c++17
-  INCLUDES = -IC:\Users\mea25\Desktop\Scala\vcpkg\installed\x64-windows\include -IC:\Users\mea25\Desktop\Scala\vcpkg\installed\x64-windows\include\curl
+  INCLUDES = -IC:\Users\mea25\Desktop\Scala\vcpkg\installed\x64-windows\include\curl -IC:\Users\mea25\Desktop\Scala\vcpkg\installed\x64-windows\include
   OBJECT_DIR = CMakeFiles\GarbageCollector.dir
   OBJECT_FILE_DIR = CMakeFiles\GarbageCollector.dir
   TARGET_COMPILE_PDB = CMakeFiles\GarbageCollector.dir\
@@ -61,7 +61,7 @@ build CMakeFiles\GarbageCollector.dir\SpecCollector.cpp.obj: CXX_COMPILER__Garba
 
 build CMakeFiles\GarbageCollector.dir\base64.cpp.obj: CXX_COMPILER__GarbageCollector_Debug ..\..\..\base64.cpp || cmake_object_order_depends_target_GarbageCollector
   FLAGS = /DWIN32 /D_WINDOWS /EHsc /Zi /Ob0 /Od /RTC1 -MDd -std:c++17
-  INCLUDES = -IC:\Users\mea25\Desktop\Scala\vcpkg\installed\x64-windows\include -IC:\Users\mea25\Desktop\Scala\vcpkg\installed\x64-windows\include\curl
+  INCLUDES = -IC:\Users\mea25\Desktop\Scala\vcpkg\installed\x64-windows\include\curl -IC:\Users\mea25\Desktop\Scala\vcpkg\installed\x64-windows\include
   OBJECT_DIR = CMakeFiles\GarbageCollector.dir
   OBJECT_FILE_DIR = CMakeFiles\GarbageCollector.dir
   TARGET_COMPILE_PDB = CMakeFiles\GarbageCollector.dir\
@@ -75,10 +75,10 @@ build CMakeFiles\GarbageCollector.dir\base64.cpp.obj: CXX_COMPILER__GarbageColle
 #############################################
 # Link the executable GarbageCollector.exe
 
-build GarbageCollector.exe: CXX_EXECUTABLE_LINKER__GarbageCollector_Debug CMakeFiles\GarbageCollector.dir\main.cpp.obj CMakeFiles\GarbageCollector.dir\SpecCollector.cpp.obj CMakeFiles\GarbageCollector.dir\base64.cpp.obj | C$:\Users\mea25\Desktop\Scala\vcpkg\installed\x64-windows\debug\lib\libcurl-d.lib
+build GarbageCollector.exe: CXX_EXECUTABLE_LINKER__GarbageCollector_Debug CMakeFiles\GarbageCollector.dir\main.cpp.obj CMakeFiles\GarbageCollector.dir\SpecCollector.cpp.obj CMakeFiles\GarbageCollector.dir\base64.cpp.obj | C$:\Users\mea25\Desktop\Scala\vcpkg\installed\x64-windows\debug\lib\jsoncpp.lib C$:\Users\mea25\Desktop\Scala\vcpkg\installed\x64-windows\debug\lib\libcurl-d.lib
   FLAGS = /DWIN32 /D_WINDOWS /EHsc /Zi /Ob0 /Od /RTC1 -MDd
   LINK_FLAGS = /machine:x64 /debug /INCREMENTAL /subsystem:console
-  LINK_LIBRARIES = C:\Users\mea25\Desktop\Scala\vcpkg\installed\x64-windows\debug\lib\libcurl-d.lib  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib
+  LINK_LIBRARIES = C:\Users\mea25\Desktop\Scala\vcpkg\installed\x64-windows\debug\lib\jsoncpp.lib  C:\Users\mea25\Desktop\Scala\vcpkg\installed\x64-windows\debug\lib\libcurl-d.lib  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib
   OBJECT_DIR = CMakeFiles\GarbageCollector.dir
   POST_BUILD = cmd.exe /C "cd /D C:\Users\mea25\Desktop\AltBoost\GarbageCollector\out\build\x64-Debug && C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -noprofile -executionpolicy Bypass -file C:/Users/mea25/Desktop/Scala/vcpkg/scripts/buildsystems/msbuild/applocal.ps1 -targetBinary C:/Users/mea25/Desktop/AltBoost/GarbageCollector/out/build/x64-Debug/GarbageCollector.exe -installedDir C:/Users/mea25/Desktop/Scala/vcpkg/installed/x64-windows/debug/bin -OutVariable out"
   PRE_LINK = cd .
