@@ -10,7 +10,7 @@ pkg_check_modules(JSONCPP jsoncpp)
 link_libraries(${JSONCPP_LIBRARIES})
 
 add_executable(GarbageCollector
-        main.cpp "SpecCollector.h" "SpecCollector.cpp" "base64.h" "base64.cpp")
+        main.cpp "SpecCollector.h" "SpecCollector.cpp" "base64.h" "base64.cpp"  )
 
 include_directories(${JSONCPP_INCLUDE_DIR})
 message("JSONINC:" ${JSONCPP_INCLUDE_DIR})

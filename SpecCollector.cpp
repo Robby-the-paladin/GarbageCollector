@@ -6,7 +6,7 @@ static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* use
     return size * nmemb;
 }
 
-std::string SpecCollector::getSpec(std::string branch, std::string name) {
+Json::Value SpecCollector::getSpecResponse(std::string branch, std::string name) {
     std::string host = "https://rdb.altlinux.org/api/package/specfile_by_name";
     std::string req = host + "?" + "branch=" + branch + "&" + "name=" + name;
     //std::cout << "\n" << req << "\n";
@@ -35,10 +35,18 @@ std::string SpecCollector::getSpec(std::string branch, std::string name) {
         return "";
     }
 
+    return root;
+}
+
+std::string SpecCollector::getSpec(std::string branch, std::string name) {
+    auto root = getSpecResponse(branch, name);
     std::string content = root["specfile_content"].asString();
     std::string result = base64_decode(content);
+    return result;
+}
 
-    //std::cout << "result:\n" << result;
-
+std::string SpecCollector::getSpecDate(std::string branch, std::string name) {
+    auto root = getSpecResponse(branch, name);
+    std::string result = root["specfile_date"].asString();
     return result;
 }
