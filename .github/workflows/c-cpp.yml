@@ -14,10 +14,8 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: prepare
-      run: rm -rf ./build && mkdir build && cd build
-    - name: cmake
-      run: cmake ..
-    - name: make
-      run: make
+      run: rm -rf ./build && mkdir build
+    - name: build
+      run: cd build && cmake .. && make
     - name: run
-      run: ./GarbageCollector
+      run: ./build/GarbageCollector
