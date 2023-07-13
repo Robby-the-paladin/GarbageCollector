@@ -9,33 +9,22 @@ static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* use
 Json::Value SpecCollector::getSpecResponse(std::string branch, std::string name) {
     std::string host = "https://rdb.altlinux.org/api/package/specfile_by_name";
     std::string req = host + "?" + "branch=" + branch + "&" + "name=" + name;
-    //std::cout << "\n" << req << "\n";
-
-    // Запрос на получение spec к API
-    CURL* curl;
-    CURLcode res;
-    std::string readBuffer;
-
-    curl = curl_easy_init();
-    if (curl) {
-        curl_easy_setopt(curl, CURLOPT_URL, req.c_str());
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
-        res = curl_easy_perform(curl);
-        curl_easy_cleanup(curl);
-
-        //std::cout << readBuffer << std::endl;
-    }
-
-    Json::Value root;
-    Json::Reader reader;
-    bool parser_success = reader.parse(readBuffer, root);
-    if (!parser_success) {
-        std::cout << "JSON parser error\n";
-        return "";
-    }
+    auto root = Api::getReadBuffer(req);
 
     return root;
+}
+
+std::vector<std::string> SpecCollector::getBranchPackageNames(std::string branch) {
+    std::vector<std::string> result;
+
+    std::string host = "https://rdb.altlinux.org/api/export/sitemap_packages/";
+    std::string req = host + branch;
+    auto root = Api::getReadBuffer(req);
+    for (auto pack : root["packages"]) {
+        result.push_back(pack["name"].asString());
+    }
+
+    return result;
 }
 
 std::string SpecCollector::getSpec(std::string branch, std::string name) {

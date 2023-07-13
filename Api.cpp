@@ -21,7 +21,8 @@ Json::Value Api::getReadBuffer(std::string req) {
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer); 
         res = curl_easy_perform(curl);
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
-        std::cout << http_code  << "\n";
+        if (http_code != 200)
+            std::cout << http_code  << "\n";
         
         curl_easy_cleanup(curl);
     }
@@ -80,7 +81,7 @@ bool Api::checkPackage(std::string packageName) {
         std::string req = host + "branch=" + packageset + "&dp_name=" + packageName + "&dp_type=require";
         
         Json::Value root = this->getReadBuffer(req);
-        usleep(500000); // 0.01 sec
+        //usleep(500000); // 0.01 sec
         //sleep(1);
     }
 

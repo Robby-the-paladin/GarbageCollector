@@ -67,6 +67,14 @@ build CMakeFiles\GarbageCollector.dir\base64.cpp.obj: CXX_COMPILER__GarbageColle
   TARGET_COMPILE_PDB = CMakeFiles\GarbageCollector.dir\
   TARGET_PDB = GarbageCollector.pdb
 
+build CMakeFiles\GarbageCollector.dir\Api.cpp.obj: CXX_COMPILER__GarbageCollector_Debug ..\..\..\Api.cpp || cmake_object_order_depends_target_GarbageCollector
+  FLAGS = /DWIN32 /D_WINDOWS /EHsc /Zi /Ob0 /Od /RTC1 -MDd -std:c++17
+  INCLUDES = -IC:\Users\mea25\Desktop\Scala\vcpkg\installed\x64-windows\include\curl -IC:\Users\mea25\Desktop\Scala\vcpkg\installed\x64-windows\include
+  OBJECT_DIR = CMakeFiles\GarbageCollector.dir
+  OBJECT_FILE_DIR = CMakeFiles\GarbageCollector.dir
+  TARGET_COMPILE_PDB = CMakeFiles\GarbageCollector.dir\
+  TARGET_PDB = GarbageCollector.pdb
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target GarbageCollector
@@ -75,7 +83,7 @@ build CMakeFiles\GarbageCollector.dir\base64.cpp.obj: CXX_COMPILER__GarbageColle
 #############################################
 # Link the executable GarbageCollector.exe
 
-build GarbageCollector.exe: CXX_EXECUTABLE_LINKER__GarbageCollector_Debug CMakeFiles\GarbageCollector.dir\main.cpp.obj CMakeFiles\GarbageCollector.dir\SpecCollector.cpp.obj CMakeFiles\GarbageCollector.dir\base64.cpp.obj | C$:\Users\mea25\Desktop\Scala\vcpkg\installed\x64-windows\debug\lib\jsoncpp.lib C$:\Users\mea25\Desktop\Scala\vcpkg\installed\x64-windows\debug\lib\libcurl-d.lib
+build GarbageCollector.exe: CXX_EXECUTABLE_LINKER__GarbageCollector_Debug CMakeFiles\GarbageCollector.dir\main.cpp.obj CMakeFiles\GarbageCollector.dir\SpecCollector.cpp.obj CMakeFiles\GarbageCollector.dir\base64.cpp.obj CMakeFiles\GarbageCollector.dir\Api.cpp.obj | C$:\Users\mea25\Desktop\Scala\vcpkg\installed\x64-windows\debug\lib\jsoncpp.lib C$:\Users\mea25\Desktop\Scala\vcpkg\installed\x64-windows\debug\lib\libcurl-d.lib
   FLAGS = /DWIN32 /D_WINDOWS /EHsc /Zi /Ob0 /Od /RTC1 -MDd
   LINK_FLAGS = /machine:x64 /debug /INCREMENTAL /subsystem:console
   LINK_LIBRARIES = C:\Users\mea25\Desktop\Scala\vcpkg\installed\x64-windows\debug\lib\jsoncpp.lib  C:\Users\mea25\Desktop\Scala\vcpkg\installed\x64-windows\debug\lib\libcurl-d.lib  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib
