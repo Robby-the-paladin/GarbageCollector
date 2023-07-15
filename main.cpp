@@ -1,7 +1,9 @@
 #include <iostream>
 #include <regex>
+#include <unistd.h>
 #include <set>
 #include "SpecCollector.h"
+#include "SpecParser.h"
 #include "Api.h"
 
 using namespace std;
@@ -9,6 +11,7 @@ using namespace std;
 int main() {
     std::cout << "Edgar genius!" << std::endl;
     SpecCollector s;
+    SpecParser p;
     Api api;
     
     set<string> keywords;
@@ -18,23 +21,16 @@ int main() {
     string branch = "p10";
     auto pnames = s.getBranchPackageNames(branch);
 
-    cout << pnames.size() * 500 / 1000 / 3600 << endl;
-    /*for (auto pname : pnames) {
-        Sleep(500);
+    for (auto pname : pnames) {
+        usleep(5000);
         string spec = s.getSpec(branch, pname);
         cout << "\nIn package " << pname << ":\n";
-        for (auto keyword : keywords) {
-            string ex = "(" + keyword + ") (.*) (=|<|<=|<=|>=) (.*)";
-            regex expr(ex, regex::icase);
-            string::const_iterator searchStart(spec.cbegin());
-            smatch res;
-            while (regex_search(searchStart, spec.cend(), res, expr))
-            {
-                cout << (searchStart == spec.cbegin() ? "" : "\n") << res[0] << endl;
-                searchStart = res.suffix().first;
-            }
+        auto packages = p.getDeprecatedPackages(spec);
+        for (auto pack : packages) {
+            cout << pack << endl;
         }
-    }*/
+
+    }
 
     return 0;
 }

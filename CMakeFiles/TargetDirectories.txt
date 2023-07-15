@@ -1,0 +1,3 @@
+/workspaces/GarbageCollector/CMakeFiles/GarbageCollector.dir
+/workspaces/GarbageCollector/CMakeFiles/edit_cache.dir
+/workspaces/GarbageCollector/CMakeFiles/rebuild_cache.dir

@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/GarbageCollector.dir/main.cpp.o CMakeFiles/GarbageCollector.dir/SpecCollector.cpp.o CMakeFiles/GarbageCollector.dir/base64.cpp.o CMakeFiles/GarbageCollector.dir/Api.cpp.o CMakeFiles/GarbageCollector.dir/SpecParser.cpp.o -o GarbageCollector  -ljsoncpp /usr/lib64/libjsoncpp.so.1.8.4 /usr/lib64/libcurl.so 
