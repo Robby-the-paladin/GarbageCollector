@@ -10,4 +10,5 @@ public:
 	SpecParser() {}
 
 	std::set<std::string> getDeprecatedPackages(std::string specfile);
+	std::set<std::string> getBuildRequiresPrePackages(std::string specfile);
 };
