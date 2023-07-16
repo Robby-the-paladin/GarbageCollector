@@ -25,7 +25,7 @@ std::set<std::string> SpecParser::getDeprecatedPackages(std::string specfile) {
 	keywords.insert("Provides:");
 
 	for (auto keyword : keywords) {
-		std::string ex = "(" + keyword + ") (.*) (=|<|<=|<=|>=) (.*)";
+		std::string ex = "(" + keyword + ") (.*) (=|<|<=|>|>=) (.*)";
 		std::regex expr(ex, std::regex::icase);
 		std::string::const_iterator searchStart(spec.cbegin());
 		std::smatch res;

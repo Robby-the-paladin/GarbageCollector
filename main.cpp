@@ -22,7 +22,7 @@ int main() {
     auto pnames = s.getBranchPackageNames(branch);
 
     for (auto pname : pnames) {
-        usleep(5000);
+        usleep(50000);
         string spec = s.getSpec(branch, pname);
         cout << "\nIn package " << pname << ":\n";
         auto packages = p.getDeprecatedPackages(spec);
