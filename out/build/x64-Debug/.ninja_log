@@ -1,7 +1,0 @@
-# ninja log v5
-1	1556	7111232130684646	CMakeFiles/GarbageCollector.dir/main.cpp.obj	558ff4b75def5f8d
-0	857	7109771178911398	GarbageCollector.exe	bfde530e66c8395f
-1	1068	7109759400062224	CMakeFiles/GarbageCollector.dir/SpecCollector.cpp.obj	f0164698aeab9d0e
-12	507	7108041371056685	CMakeFiles/GarbageCollector.dir/base64.cpp.obj	67715258d0775584
-24	1348	7109663692628773	CMakeFiles/GarbageCollector.dir/SpecParser.cpp.obj	8aa88dede8195da7
-9	1456	7111232129684519	CMakeFiles/GarbageCollector.dir/Api.cpp.obj	1b5e27fc53f86d30
