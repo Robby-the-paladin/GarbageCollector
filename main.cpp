@@ -32,14 +32,16 @@ int main() {
 
     }
     */
-    std::string req = "https://rdb.altlinux.org/api/export/repology/p10";
-    req = "https://rdb.altlinux.org/api/export/branch_binary_packages/p10?arch=x86_64";
-    Json::Value list_p = Api::getReadBuffer(req); //["packages"];
-    std::cout << list_p << std::endl;
+    // std::string req = "https://rdb.altlinux.org/api/export/repology/p10";
+    // req = "https://rdb.altlinux.org/api/export/branch_binary_packages/p10?arch=x86_64";
+    // Json::Value list_p = Api::getReadBuffer(req); //["packages"];
+    // std::cout << list_p << std::endl;
     /*
     for (auto p : list_p) {
         std::cout << "Package name source: " << p["name"] << " Binary: " << p["binaries"][0]["name"] << std::endl;
     }
     */
+    string packageName = "boost-atomic-devel";
+    cout << "Package name: " << packageName << "\n" << Api::checkPackage(packageName) <<endl;
     return 0;
 }
