@@ -41,12 +41,13 @@ std::set<std::string> SpecParser::getDeprecatedPackages(std::string specfile) {
 			std::string str_buildrpre = res[2].str(); 
 			searchStart = str_buildrpre.cbegin();
 			std::smatch res_str;
-			ex = "(.*) (<=|>=|=|<|>)";
+			ex = "([^<>=]+) (<=|>=|=|<|>)";
 			std::regex expr_str(ex, std::regex::icase);
 			int f = 0;
 			while (std::regex_search(searchStart, str_buildrpre.cend(), res_str, expr_str)) {
 				if (!f) {
-					result.insert(res_str[1]);
+					std::cerr << res_str[0].str() << std::endl; 
+					result.insert(" " + res_str[1].str() );
 				} else {
 					bool start = 0;
 					for (int i = 0; i < res_str[1].str().size(); i++) {
@@ -102,7 +103,8 @@ std::set<std::string> SpecParser::getBuildRequiresPrePackages(std::string specfi
 			std::string str_buildrpre = res[2].str(); 
 			searchStart = str_buildrpre.cbegin();
 			std::smatch res_str;
-			ex = "(.*) (<=|>=|=|<|>)";
+			ex = "(.*) (<=|>=|=|<|>)"; // ?
+			ex = "([^<>=]+) (<=|>=|=|<|>)";
 			std::regex expr_str(ex, std::regex::icase);
 			int f = 0;
 			while (std::regex_search(searchStart, str_buildrpre.cend(), res_str, expr_str)) {
