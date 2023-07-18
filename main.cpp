@@ -5,16 +5,26 @@
 #include "SpecCollector.h"
 #include "SpecParser.h"
 #include "Api.h"
+#include <pqxx/pqxx>
 
 using namespace std;
 
 int main() {
+    try {
+    // Connect to the database
+        pqxx::connection c("user=danila password= 123123 host=host.docker.internal port=54321 dbname=shop target_session_attrs=read-write");
+    } catch (const exception &e) {
+        cerr << e.what() << endl;
+        return 1;
+    }
+    //return 0;
     std::cout << "Edgar genius!" << std::endl;
-    // string l;
-    // while (cin >> l) {
-    //     cout << l;
-    //     system(("apt-get install -y " + l).c_str());
-    // }
+    string l;
+    while (cin >> l) {
+        cout << l;
+        system(("apt-get install -y " + l).c_str());
+    }
+    return 0;
     SpecCollector s;
     SpecParser p;
     Api api;
@@ -23,10 +33,11 @@ int main() {
     keywords.insert("Provides:");
 
     string branch = "p10";
-    auto pnames = s.getBranchPackageNames(branch);
+    //auto pnames = s.getBranchPackageNames(branch);
     int successful = 0;
+    vector<string> pnames;
     std::set<std::string> errorPackages;
-
+    pnames = {"opennebula","fonts-bitmap-knm-new-fixed"};
     for (auto pname : pnames) {
         sleep(1);
         string spec = s.getSpec(branch, pname);
@@ -48,7 +59,7 @@ int main() {
 		    //     std::cout << "Error using apt-get:" << resp << std::endl;
         }
     }
-    std::cout << "Garbage collected =) : \nnumber of packages: " << pnames.size() 
+    std::cout << "\nGarbage collected =) : \nnumber of packages: " << pnames.size() 
     << "\nnumber of deprecated packages: " << successful << "\nNumber of packages with error =( :" << p.error << std::endl;
     std::cout << "error packages:" << std::endl;
     for (auto name : errorPackages) {
