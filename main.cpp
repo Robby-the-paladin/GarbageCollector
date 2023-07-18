@@ -10,36 +10,58 @@ using namespace std;
 
 int main() {
     std::cout << "Edgar genius!" << std::endl;
+    // string l;
+    // while (cin >> l) {
+    //     cout << l;
+    //     system(("apt-get install -y " + l).c_str());
+    // }
     SpecCollector s;
     SpecParser p;
     Api api;
-    /*
     set<string> keywords;
     keywords.insert("Obsoletes:");
     keywords.insert("Provides:");
 
     string branch = "p10";
     auto pnames = s.getBranchPackageNames(branch);
+    int successful = 0;
+    std::set<std::string> errorPackages;
 
     for (auto pname : pnames) {
-        usleep(50000);
+        sleep(1);
         string spec = s.getSpec(branch, pname);
         cout << "\nIn package " << pname << ":\n";
-        auto packages = p.getDeprecatedPackages(spec);
-        for (auto pack : packages) {
-            cout << pack << endl;
-        }
+        cerr << "\nIn package " << pname << ":\n";
+        //auto packages = p.getBuildRequiresPrePackages(spec);
 
+        auto cur_error = p.error;
+        auto packages = p.getDeprecatedPackages(spec);
+        if (cur_error != p.error)
+            errorPackages.insert(pname);
+
+        if (packages.size() != 0)
+            successful++;
+        for (auto pack : packages) {
+            std::cout << pack;
+            // int resp = system(("apt-get install -y " + pack).c_str()) ;
+	        // if (resp != 0)
+		    //     std::cout << "Error using apt-get:" << resp << std::endl;
+        }
     }
-    */
-    std::string req = "https://rdb.altlinux.org/api/export/repology/p10";
-    req = "https://rdb.altlinux.org/api/export/branch_binary_packages/p10?arch=x86_64";
-    Json::Value list_p = Api::getReadBuffer(req); //["packages"];
-    std::cout << list_p << std::endl;
-    /*
-    for (auto p : list_p) {
-        std::cout << "Package name source: " << p["name"] << " Binary: " << p["binaries"][0]["name"] << std::endl;
+    std::cout << "Garbage collected =) : \nnumber of packages: " << pnames.size() 
+    << "\nnumber of deprecated packages: " << successful << "\nNumber of packages with error =( :" << p.error << std::endl;
+    std::cout << "error packages:" << std::endl;
+    for (auto name : errorPackages) {
+        std::cout << name << "\n";
     }
-    */
+    // std::string req = "https://rdb.altlinux.org/api/export/repology/p10";
+    // req = "https://rdb.altlinux.org/api/export/branch_binary_packages/p10?arch=x86_64";
+    // Json::Value list_p = Api::getReadBuffer(req); //["packages"];
+    // std::cout << list_p << std::endl;
+    // /*
+    // for (auto p : list_p) {
+    //     std::cout << "Package name source: " << p["name"] << " Binary: " << p["binaries"][0]["name"] << std::endl;
+    // }
+    // */
     return 0;
 }
