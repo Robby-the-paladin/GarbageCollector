@@ -2,6 +2,22 @@
 	"entries" : 
 	[
 		{
+			"name" : "Boost_INCLUDE_DIR",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "C:/Users/mea25/Desktop/Scala/vcpkg/installed/x64-windows/include"
+		},
+		{
 			"name" : "CATCH_INCLUDE_DIR",
 			"properties" : 
 			[
@@ -1174,6 +1190,18 @@
 			"value" : "C:/Users/mea25/Desktop/Scala/vcpkg/installed/x64-windows/lib/libcurl.lib"
 		},
 		{
+			"name" : "FIND_PACKAGE_MESSAGE_DETAILS_Boost",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Details about finding Boost"
+				}
+			],
+			"type" : "INTERNAL",
+			"value" : "[C:/Users/mea25/Desktop/Scala/vcpkg/installed/x64-windows/include][c ][v1.82.0()]"
+		},
+		{
 			"name" : "FIND_PACKAGE_MESSAGE_DETAILS_PkgConfig",
 			"properties" : 
 			[
@@ -1570,6 +1598,30 @@
 			"value" : "C:/Users/mea25/Desktop/Scala/vcpkg/installed/x64-windows/debug/lib/jsoncpp.lib"
 		},
 		{
+			"name" : "LIBBSONCXX_LIBRARY_PATH",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "C:/Users/mea25/Desktop/Scala/vcpkg/installed/x64-windows/lib/bsoncxx.lib"
+		},
+		{
+			"name" : "LIBMONGOCXX_LIBRARY_PATH",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "C:/Users/mea25/Desktop/Scala/vcpkg/installed/x64-windows/lib/mongocxx.lib"
+		},
+		{
 			"name" : "PKG_CONFIG_EXECUTABLE",
 			"properties" : 
 			[
@@ -1854,6 +1906,78 @@
 			"value" : "C:/Users/mea25/Desktop/Scala/vcpkg"
 		},
 		{
+			"name" : "_Boost_COMPILER_LAST",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Last used Boost_COMPILER value."
+				}
+			],
+			"type" : "INTERNAL",
+			"value" : "-vc140"
+		},
+		{
+			"name" : "_Boost_COMPONENTS_SEARCHED",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Components requested for this build tree."
+				}
+			],
+			"type" : "INTERNAL",
+			"value" : ""
+		},
+		{
+			"name" : "_Boost_INCLUDE_DIR_LAST",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Last used Boost_INCLUDE_DIR value."
+				}
+			],
+			"type" : "INTERNAL",
+			"value" : "C:/Users/mea25/Desktop/Scala/vcpkg/installed/x64-windows/include"
+		},
+		{
+			"name" : "_Boost_NAMESPACE_LAST",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Last used Boost_NAMESPACE value."
+				}
+			],
+			"type" : "INTERNAL",
+			"value" : "boost"
+		},
+		{
+			"name" : "_Boost_USE_MULTITHREADED_LAST",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Last used Boost_USE_MULTITHREADED value."
+				}
+			],
+			"type" : "INTERNAL",
+			"value" : "ON"
+		},
+		{
+			"name" : "_Boost_USE_STATIC_LIBS_LAST",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Last used Boost_USE_STATIC_LIBS value."
+				}
+			],
+			"type" : "INTERNAL",
+			"value" : "OFF"
+		},
+		{
 			"name" : "_VCPKG_INSTALLED_DIR",
 			"properties" : 
 			[
@@ -1888,6 +2012,30 @@
 			],
 			"type" : "PATH",
 			"value" : "C:/Users/mea25/Desktop/Scala/vcpkg/installed/x64-windows/share/jsoncpp"
+		},
+		{
+			"name" : "libbsoncxx_DIR",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "The directory containing a CMake configuration file for libbsoncxx."
+				}
+			],
+			"type" : "PATH",
+			"value" : "C:/Users/mea25/Desktop/Scala/vcpkg/installed/x64-windows/share/libbsoncxx"
+		},
+		{
+			"name" : "libmongocxx_DIR",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "The directory containing a CMake configuration file for libmongocxx."
+				}
+			],
+			"type" : "PATH",
+			"value" : "C:/Users/mea25/Desktop/Scala/vcpkg/installed/x64-windows/share/libmongocxx"
 		}
 	],
 	"kind" : "cache",

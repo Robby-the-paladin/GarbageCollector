@@ -31,7 +31,7 @@
 			{
 				"command" : 1,
 				"file" : 1,
-				"line" : 12,
+				"line" : 18,
 				"parent" : 0
 			},
 			{
@@ -43,25 +43,31 @@
 			{
 				"command" : 2,
 				"file" : 1,
-				"line" : 17,
+				"line" : 23,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 1,
-				"line" : 20,
+				"line" : 27,
+				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 1,
+				"line" : 28,
 				"parent" : 0
 			},
 			{
 				"command" : 3,
 				"file" : 1,
-				"line" : 19,
+				"line" : 25,
 				"parent" : 0
 			},
 			{
 				"command" : 3,
 				"file" : 1,
-				"line" : 15,
+				"line" : 13,
 				"parent" : 0
 			}
 		]
@@ -81,11 +87,11 @@
 			"includes" : 
 			[
 				{
-					"backtrace" : 5,
+					"backtrace" : 6,
 					"path" : "C:/Users/mea25/Desktop/Scala/vcpkg/installed/x64-windows/include/curl"
 				},
 				{
-					"backtrace" : 6,
+					"backtrace" : 7,
 					"isSystem" : true,
 					"path" : "C:/Users/mea25/Desktop/Scala/vcpkg/installed/x64-windows/include"
 				}
@@ -154,6 +160,21 @@
 			{
 				"backtrace" : 4,
 				"fragment" : "C:\\Users\\mea25\\Desktop\\Scala\\vcpkg\\installed\\x64-windows\\debug\\lib\\libcurl-d.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 5,
+				"fragment" : "C:\\Users\\mea25\\Desktop\\Scala\\vcpkg\\installed\\x64-windows\\lib\\mongocxx.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 5,
+				"fragment" : "C:\\Users\\mea25\\Desktop\\Scala\\vcpkg\\installed\\x64-windows\\lib\\bsoncxx.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 5,
+				"fragment" : "C:\\Users\\mea25\\Desktop\\Scala\\vcpkg\\installed\\x64-windows\\lib\\bsoncxx.lib",
 				"role" : "libraries"
 			},
 			{

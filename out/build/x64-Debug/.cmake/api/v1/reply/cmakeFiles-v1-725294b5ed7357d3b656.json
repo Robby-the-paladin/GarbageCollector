@@ -230,6 +230,49 @@
 			"isCMake" : true,
 			"isExternal" : true,
 			"path" : "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.20/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "C:/Users/mea25/Desktop/Scala/vcpkg/installed/x64-windows/share/boost/vcpkg-cmake-wrapper.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.20/Modules/FindBoost.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.20/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.20/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "C:/Users/mea25/Desktop/Scala/vcpkg/installed/x64-windows/share/libmongocxx/libmongocxx-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "C:/Users/mea25/Desktop/Scala/vcpkg/installed/x64-windows/share/libmongocxx/libmongocxx-config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "C:/Users/mea25/Desktop/Scala/vcpkg/installed/x64-windows/share/libbsoncxx/libbsoncxx-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "C:/Users/mea25/Desktop/Scala/vcpkg/installed/x64-windows/share/libbsoncxx/libbsoncxx-config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "C:/Users/mea25/Desktop/Scala/vcpkg/installed/x64-windows/share/libbsoncxx/libbsoncxx-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "C:/Users/mea25/Desktop/Scala/vcpkg/installed/x64-windows/share/libbsoncxx/libbsoncxx-config.cmake"
 		}
 	],
 	"kind" : "cmakeFiles",
