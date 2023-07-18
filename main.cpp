@@ -9,22 +9,35 @@
 
 using namespace std;
 
+//#define first_buld
+
+std::string ReplaceAll(std::string str, const std::string& from, const std::string& to) {
+    size_t start_pos = 0;
+    while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+        str.replace(start_pos, from.length(), to);
+        start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
+    }
+    return str;
+}
+
 int main() {
     try {
     // Connect to the database
-        pqxx::connection c("user=danila password= 123123 host=host.docker.internal port=54321 dbname=shop target_session_attrs=read-write");
+        pqxx::connection c("user=edgar password=genius host=host.docker.internal port=5432 dbname=test target_session_attrs=read-write");
     } catch (const exception &e) {
         cerr << e.what() << endl;
-        return 1;
+     //   return 1;
     }
     //return 0;
-    std::cout << "Edgar genius!" << std::endl;
-    string l;
-    while (cin >> l) {
-        cout << l;
-        system(("apt-get install -y " + l).c_str());
-    }
-    return 0;
+    #ifdef first_buld
+        std::cout << "Edgar genius!" << std::endl;
+        string l;
+        while (cin >> l) {
+            cout << l;
+            system(("apt-get install -y " + l).c_str());
+        }
+    #endif
+   // return 0;
     SpecCollector s;
     SpecParser p;
     Api api;
@@ -33,13 +46,15 @@ int main() {
     keywords.insert("Provides:");
 
     string branch = "p10";
-    //auto pnames = s.getBranchPackageNames(branch);
+    auto pnames = s.getBranchPackageNames(branch);
     int successful = 0;
-    vector<string> pnames;
+   // vector<string> pnames;
     std::set<std::string> errorPackages;
-    pnames = {"opennebula","fonts-bitmap-knm-new-fixed"};
+   // pnames = {"opennebula","fonts-bitmap-knm-new-fixed"};
+   // pnames = {"libtolua++-lua5.1", "tintin++", "tolua++", "libvsqlite++"};
     for (auto pname : pnames) {
         sleep(1);
+        pname = ReplaceAll(pname, "+", "%2B");
         string spec = s.getSpec(branch, pname);
         cout << "\nIn package " << pname << ":\n";
         cerr << "\nIn package " << pname << ":\n";

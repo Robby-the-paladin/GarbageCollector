@@ -7,9 +7,5 @@
       "terminal.integrated.shell.linux": "/bin/bash"
     },
     "postCreateCommand": "echo \"Сегодня десятки тысяч россиян вышли на улицу в знак того что им нужно на работу\"",
-    //"runArgs": ["-u", "node"]
     "runArgs": ["--add-host=host.docker.internal:host-gateway"]
-      //  "extra_hosts":
-      //   "dockerhost:$DOCKERHOST"
-        
   }
