@@ -4,8 +4,9 @@
 #include <set>
 #include "SpecCollector.h"
 #include "SpecParser.h"
+#include "PostgreHandler.h"
 #include "Api.h"
-#include <pqxx/pqxx>
+//#include <pqxx/pqxx>
 
 using namespace std;
 
@@ -40,40 +41,47 @@ int main() {
    // return 0;
     SpecCollector s;
     SpecParser p;
+    PostgreHandler ph;
     Api api;
     set<string> keywords;
     keywords.insert("Obsoletes:");
     keywords.insert("Provides:");
 
     string branch = "p10";
-    auto pnames = s.getBranchPackageNames(branch);
+    vector<string> pnames = s.getBranchPackageNames(branch);
     int successful = 0;
    // vector<string> pnames;
     std::set<std::string> errorPackages;
    // pnames = {"opennebula","fonts-bitmap-knm-new-fixed"};
-   // pnames = {"libtolua++-lua5.1", "tintin++", "tolua++", "libvsqlite++"};
+    //pnames = {"libtolua++-lua5.1", "tintin++", "tolua++", "libvsqlite++"};
     for (auto pname : pnames) {
         sleep(1);
+
         pname = ReplaceAll(pname, "+", "%2B");
         string spec = s.getSpec(branch, pname);
         cout << "\nIn package " << pname << ":\n";
         cerr << "\nIn package " << pname << ":\n";
         //auto packages = p.getBuildRequiresPrePackages(spec);
 
-       auto cur_error = p.error;
-       auto packages = p.getDeprecatedPackages(spec);
-       if (cur_error != p.error)
+        auto cur_error = p.error;
+        auto packages = p.getDeprecatedPackages(spec);
+        if (cur_error != p.error) {
            errorPackages.insert(pname);
-
-       if (packages.size() != 0)
-           successful++;
-       for (auto pack : packages) {
+        } else {
+            ph.addDeprecated(pname, packages);
+        }
+        
+        if (packages.size() != 0)
+            successful++;
+       
+        for (auto pack : packages) {
            std::cout << pack;
            // int resp = system(("apt-get install -y " + pack).c_str()) ;
 	       // if (resp != 0)
 		   //     std::cout << "Error using apt-get:" << resp << std::endl;
-       }
+        }
     }
+    //ph.connect.disconnect();
     std::cout << "\nGarbage collected =) : \nnumber of packages: " << pnames.size() 
     << "\nnumber of deprecated packages: " << successful << "\nNumber of packages with error " << ((p.error)? "=( :" : "=) :") << p.error << std::endl;
     std::cout << "error packages:" << std::endl;
