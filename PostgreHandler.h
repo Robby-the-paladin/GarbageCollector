@@ -14,6 +14,7 @@ public:
     
     bool addDeprecated(std::string name, std::set<std::string> data); 
     bool getDeprecated(std::string name, std::set<std::string>& data);
+    std::set<std::string> getAllNames();
 };
 
 

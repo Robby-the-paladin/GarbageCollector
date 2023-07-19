@@ -10,7 +10,7 @@
 
 using namespace std;
 
-//#define first_buld
+#define first_buld
 
 std::string ReplaceAll(std::string str, const std::string& from, const std::string& to) {
     size_t start_pos = 0;
@@ -46,7 +46,8 @@ int main() {
     set<string> keywords;
     keywords.insert("Obsoletes:");
     keywords.insert("Provides:");
-
+    auto save_names = ph.getAllNames();
+    //return 0;
     string branch = "p10";
     vector<string> pnames = s.getBranchPackageNames(branch);
     int successful = 0;
@@ -54,10 +55,17 @@ int main() {
     std::set<std::string> errorPackages;
    // pnames = {"opennebula","fonts-bitmap-knm-new-fixed"};
     //pnames = {"libtolua++-lua5.1", "tintin++", "tolua++", "libvsqlite++"};
+
     for (auto pname : pnames) {
-        sleep(1);
+        
 
         pname = ReplaceAll(pname, "+", "%2B");
+        if (save_names.find(pname) != save_names.end()) {
+            cout << "SKIP package name: " << pname << endl;
+            continue;
+        }
+        
+        sleep(1);
         string spec = s.getSpec(branch, pname);
         cout << "\nIn package " << pname << ":\n";
         cerr << "\nIn package " << pname << ":\n";
@@ -76,10 +84,8 @@ int main() {
        
         for (auto pack : packages) {
            std::cout << pack;
-           // int resp = system(("apt-get install -y " + pack).c_str()) ;
-	       // if (resp != 0)
-		   //     std::cout << "Error using apt-get:" << resp << std::endl;
         }
+        
     }
     //ph.connect.disconnect();
     std::cout << "\nGarbage collected =) : \nnumber of packages: " << pnames.size() 

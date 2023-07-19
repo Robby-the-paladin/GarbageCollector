@@ -26,7 +26,7 @@ bool PostgreHandler::getDeprecated(std::string name,  std::set<std::string>& dat
     
     for (pqxx::result::const_iterator it = R.begin(); it != R.end(); it++ ) {
        // auto elems = (*it).as<std::vector<std::string>>();
-        std::cout << (*it)[0] << std::endl;
+     //   std::cout << (*it)[0] << std::endl;
         auto elems = (*it)[0].as_array();
         auto elem = elems.get_next();     //.as<std::vector<std::string>>();
         while (elem.first != pqxx::array_parser::juncture::done) {
@@ -37,4 +37,18 @@ bool PostgreHandler::getDeprecated(std::string name,  std::set<std::string>& dat
     }
     W.commit();
     return true;
+}
+
+std::set<std::string> PostgreHandler::getAllNames() {
+    pqxx::work W(connect);
+    pqxx::result R (W.exec("SELECT name FROM depr"));
+
+    std::set<std::string> data;
+    for (pqxx::result::const_iterator it = R.begin(); it != R.end(); it++ ) {
+        std::cout << (*it)[1] << std::endl;
+        auto elem = (*it)[0]; 
+        data.insert(elem.as<std::string>());
+    }
+    W.commit();
+    return data;
 }
