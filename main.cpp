@@ -10,7 +10,7 @@
 
 using namespace std;
 
-#define first_buld
+//#define first_buld
 
 std::string ReplaceAll(std::string str, const std::string& from, const std::string& to) {
     size_t start_pos = 0;
@@ -56,43 +56,65 @@ int main() {
    // pnames = {"opennebula","fonts-bitmap-knm-new-fixed"};
     //pnames = {"libtolua++-lua5.1", "tintin++", "tolua++", "libvsqlite++"};
 
-    for (auto pname : pnames) {
+    // for (auto pname : pnames) {
         
 
+    //     pname = ReplaceAll(pname, "+", "%2B");
+    //     if (save_names.find(pname) != save_names.end()) {
+    //         cout << "SKIP package name: " << pname << endl;
+    //         continue;
+    //     }
+        
+    //     sleep(1);
+    //     string spec = s.getSpec(branch, pname);
+    //     cout << "\nIn package " << pname << ":\n";
+    //     cerr << "\nIn package " << pname << ":\n";
+    //     //auto packages = p.getBuildRequiresPrePackages(spec);
+
+    //     auto cur_error = p.error;
+    //     auto packages = p.getDeprecatedPackages(spec);
+    //     if (cur_error != p.error) {
+    //        errorPackages.insert(pname);
+    //     } else {
+    //         ph.addDeprecated(pname, "data", packages);
+    //     }
+        
+    //     if (packages.size() != 0)
+    //         successful++;
+       
+    //     for (auto pack : packages) {
+    //        std::cout << pack;
+    //     }
+        
+    // }
+    // //ph.connect.disconnect();
+    // std::cout << "\nGarbage collected =) : \nnumber of packages: " << pnames.size() 
+    // << "\nnumber of deprecated packages: " << successful << "\nNumber of packages with error " << ((p.error)? "=( :" : "=) :") << p.error << std::endl;
+    // std::cout << "error packages:" << std::endl;
+    // for (auto name : errorPackages) {
+    //    std::cout << name << "\n";
+    // }
+    cout << "\nSearching deprecated packages\n";
+    for (auto pname : pnames) {
         pname = ReplaceAll(pname, "+", "%2B");
-        if (save_names.find(pname) != save_names.end()) {
+        if (!ph.isDeprecatedNull(pname)) {
             cout << "SKIP package name: " << pname << endl;
             continue;
         }
-        
-        sleep(1);
-        string spec = s.getSpec(branch, pname);
         cout << "\nIn package " << pname << ":\n";
         cerr << "\nIn package " << pname << ":\n";
-        //auto packages = p.getBuildRequiresPrePackages(spec);
-
-        auto cur_error = p.error;
-        auto packages = p.getDeprecatedPackages(spec);
-        if (cur_error != p.error) {
-           errorPackages.insert(pname);
-        } else {
-            ph.addDeprecated(pname, packages);
+        set<string> data, depr_data;
+        ph.getDeprecated(pname, "data", data);
+        for (auto pack : data) {
+            pack = ReplaceAll(pack, "+", "%2B");
+            pack = ReplaceAll(pack, " ", "");
+            if (pack != "" && Api::checkPackage(pack)) {
+                cout << pack << " ";
+                depr_data.insert(pack);
+            }
         }
-        
-        if (packages.size() != 0)
-            successful++;
-       
-        for (auto pack : packages) {
-           std::cout << pack;
-        }
-        
-    }
-    //ph.connect.disconnect();
-    std::cout << "\nGarbage collected =) : \nnumber of packages: " << pnames.size() 
-    << "\nnumber of deprecated packages: " << successful << "\nNumber of packages with error " << ((p.error)? "=( :" : "=) :") << p.error << std::endl;
-    std::cout << "error packages:" << std::endl;
-    for (auto name : errorPackages) {
-       std::cout << name << "\n";
+        cout << "\n";
+        ph.addDeprecated(pname, "depr_data", depr_data);
     }
     // std::string req = "https://rdb.altlinux.org/api/export/repology/p10";
     // req = "https://rdb.altlinux.org/api/export/branch_binary_packages/p10?arch=x86_64";
@@ -103,5 +125,6 @@ int main() {
     //     std::cout << "Package name source: " << p["name"] << " Binary: " << p["binaries"][0]["name"] << std::endl;
     // }
     // */
+
     return 0;
 }
