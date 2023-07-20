@@ -6,7 +6,7 @@
 #include "SpecParser.h"
 #include "PostgreHandler.h"
 #include "Api.h"
-//#include <pqxx/pqxx>
+#include <pqxx/pqxx>
 
 using namespace std;
 
@@ -108,9 +108,17 @@ int main() {
         for (auto pack : data) {
             pack = ReplaceAll(pack, "+", "%2B");
             pack = ReplaceAll(pack, " ", "");
-            if (pack != "" && Api::checkPackage(pack)) {
-                cout << pack << " ";
-                depr_data.insert(pack);
+            bool connection_lost = true;
+            while (connection_lost) {
+                try {
+                    if (pack != "" && Api::checkPackage(pack)) {
+                        cout << pack << " ";
+                        depr_data.insert(pack);
+                    }
+                    connection_lost = false;
+                } catch (const pqxx::broken_connection& e) {
+                    ph.reconnect();
+                }
             }
         }
         cout << "\n";

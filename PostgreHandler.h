@@ -11,6 +11,7 @@ class PostgreHandler {
 public:
     pqxx::connection connect;
 	PostgreHandler();
+    void reconnect();
     
     bool addDeprecated(std::string name, std::string col, std::set<std::string> data); 
     bool getDeprecated(std::string name, std::string col, std::set<std::string>& data);

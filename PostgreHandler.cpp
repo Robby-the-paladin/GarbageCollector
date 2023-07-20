@@ -11,6 +11,25 @@ PostgreHandler::PostgreHandler(): connect(pqxx::connection("user=edgar password=
     connect.prepare("update_depr_data", "UPDATE depr SET depr_data = $2 WHERE name = $1");
 }
 
+void PostgreHandler::reconnect() {
+    std::cerr << "Connection lost, trying to reconnect..." << std::endl;
+    int times = 0;
+    try {
+        times++;
+        if(!connect.is_open()) {
+            connect = pqxx::connection("user=edgar password=genius host=host.docker.internal port=5432 dbname=test target_session_attrs=read-write");
+        }
+        times = 0;
+    }
+    catch(const pqxx::broken_connection & e) {
+        if(times > 10) {
+            times = 0;
+            return;
+        }
+        reconnect();
+    }
+};
+
 
 bool PostgreHandler::addDeprecated(std::string name, std::string col, std::set<std::string> data) {
     getDeprecated(name, col, data);
