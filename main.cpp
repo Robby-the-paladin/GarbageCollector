@@ -2,11 +2,12 @@
 #include <regex>
 #include <unistd.h>
 #include <set>
+#include <map>
 #include "SpecCollector.h"
 #include "SpecParser.h"
 #include "PostgreHandler.h"
 #include "Api.h"
-#include <pqxx/pqxx>
+//#include <pqxx/pqxx>
 
 using namespace std;
 
@@ -94,6 +95,7 @@ int main() {
     // for (auto name : errorPackages) {
     //    std::cout << name << "\n";
     // }
+    map<string, bool> checked_packages = {};
     cout << "\nSearching deprecated packages\n";
     for (auto pname : pnames) {
         pname = ReplaceAll(pname, "+", "%2B");
@@ -106,19 +108,22 @@ int main() {
         set<string> data, depr_data;
         ph.getDeprecated(pname, "data", data);
         for (auto pack : data) {
+            
             pack = ReplaceAll(pack, "+", "%2B");
             pack = ReplaceAll(pack, " ", "");
-            bool connection_lost = true;
-            while (connection_lost) {
-                try {
-                    if (pack != "" && Api::checkPackage(pack)) {
-                        cout << pack << " ";
-                        depr_data.insert(pack);
-                    }
-                    connection_lost = false;
-                } catch (const pqxx::broken_connection& e) {
-                    ph.reconnect();
+            if (checked_packages.find( pack ) != checked_packages.end()) {
+                if (pack != "" && checked_packages[pack]) {
+                    depr_data.insert(pack);
+                    cout << "SKIP HASHED pack name: " << pack << endl;
                 }
+                continue;
+            }
+            if (pack != "" && Api::checkPackage(pack)) {
+                cout << pack << " ";
+                depr_data.insert(pack);
+                checked_packages[pack] = true;
+            } else {
+                checked_packages[pack] = false;
             }
         }
         cout << "\n";
