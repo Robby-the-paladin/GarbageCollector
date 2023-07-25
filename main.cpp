@@ -13,6 +13,11 @@ using namespace std;
 
 //#define first_buld
 
+std::ostream& operator << (std::ostream &os, const SpecParser::lib_data &lib)
+{
+    return os << lib.name << " " << lib.sign << " " << lib.version << " " << lib.type;
+}
+
 std::string ReplaceAll(std::string str, const std::string& from, const std::string& to) {
     size_t start_pos = 0;
     while((start_pos = str.find(from, start_pos)) != std::string::npos) {
@@ -21,6 +26,8 @@ std::string ReplaceAll(std::string str, const std::string& from, const std::stri
     }
     return str;
 }
+
+std::vector<std::string> Api::activePackages = Api::getActivePackages();
 
 int main() {
     try {
@@ -54,8 +61,31 @@ int main() {
     int successful = 0;
    // vector<string> pnames;
     std::set<std::string> errorPackages;
-   // pnames = {"opennebula","fonts-bitmap-knm-new-fixed"};
+    
+    pnames = {"opennebula","fonts-bitmap-knm-new-fixed"};
+    pnames = {"boost"};
     //pnames = {"libtolua++-lua5.1", "tintin++", "tolua++", "libvsqlite++"};
+
+    for (auto pname : pnames) {
+        pname = ReplaceAll(pname, "+", "%2B");
+
+        sleep(1);
+        string spec = s.getSpec(branch, pname);
+        cout << "\nIn package " << pname << ":\n";
+        cerr << "\nIn package " << pname << ":\n";
+        //auto packages = p.getBuildRequiresPrePackages(spec);
+
+        auto cur_error = p.error;
+        auto packages = p.getDeprecatedPackages_test(spec);
+
+        auto test = p.strToStructSet_lib_data(packages);
+
+        for (auto pack : test) {
+           std::cout << pack << '\n';
+        }
+        std::cout << '\n';
+    }
+    return 0;
 
     // for (auto pname : pnames) {
         
@@ -95,14 +125,39 @@ int main() {
     // for (auto name : errorPackages) {
     //    std::cout << name << "\n";
     // }
-    map<string, bool> checked_packages = {};
+
+    // for (auto pname : pnames) {
+    //     std::set<std::string> dep, new_dep;
+    //     ph.getDeprecated(pname, "data", dep);
+    //     for (auto pack : dep) {
+    //         stringstream ss;
+    //         ss << pack;
+    //         string s;
+    //         while(getline(ss, s, ',')) {
+    //             stringstream ss2;
+    //             ss2 << s;
+    //             string s2;
+    //             while (getline(ss2, s2, ' ')) {
+    //                 if (s2 == "")
+    //                     continue;
+    //                 cout << s2 << "\n";
+    //                 new_dep.insert(s2);
+    //             }
+    //         }
+    //     }
+    //     ph.replaceDeprecatedWith(pname, "data", new_dep);
+    // }
+    
+    
+    //map<string, bool> checked_packages = {};
     cout << "\nSearching deprecated packages\n";
     for (auto pname : pnames) {
         pname = ReplaceAll(pname, "+", "%2B");
+        /*
         if (!ph.isDeprecatedNull(pname)) {
             cout << "SKIP package name: " << pname << endl;
             continue;
-        }
+        }*/
         cout << "\nIn package " << pname << ":\n";
         cerr << "\nIn package " << pname << ":\n";
         set<string> data, depr_data;
@@ -111,24 +166,22 @@ int main() {
             
             pack = ReplaceAll(pack, "+", "%2B");
             pack = ReplaceAll(pack, " ", "");
-            if (checked_packages.find( pack ) != checked_packages.end()) {
-                if (pack != "" && checked_packages[pack]) {
-                    depr_data.insert(pack);
-                    cout << "SKIP HASHED pack name: " << pack << endl;
-                }
-                continue;
-            }
-            if (pack != "" && Api::checkPackage(pack)) {
+            // if (checked_packages.find( pack ) != checked_packages.end()) {
+            //     if (pack != "" && checked_packages[pack]) {
+            //         depr_data.insert(pack);
+            //         cout << "SKIP HASHED pack name: " << pack << endl;
+            //     }
+            //     continue;
+            // }
+            if (pack != "" && ph.getCheckedPackage(pack)) {
                 cout << pack << " ";
                 depr_data.insert(pack);
-                checked_packages[pack] = true;
-            } else {
-                checked_packages[pack] = false;
             }
         }
         cout << "\n";
         ph.addDeprecated(pname, "depr_data", depr_data);
     }
+
     // std::string req = "https://rdb.altlinux.org/api/export/repology/p10";
     // req = "https://rdb.altlinux.org/api/export/branch_binary_packages/p10?arch=x86_64";
     // Json::Value list_p = Api::getReadBuffer(req); //["packages"];

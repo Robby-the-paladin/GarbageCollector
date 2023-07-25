@@ -50,22 +50,32 @@ std::vector<std::string> Api::getActivePackages() {
     return packagesets;
 }
 
-bool Api::checkPackage(std::string packageName) {
+Api::checked_package Api::checkPackage(std::string packageName) {
     // TODO: если пакет с данным именем присутствует в Requires api то false иначе true
     std::string host = "https://rdb.altlinux.org/api/dependencies/packages_by_dependency?";
     
-    std::vector<std::string> packagesets = getActivePackages();
+    //std::vector<std::string> packagesets = getActivePackages();
     int index = 1;
-    for (auto packageset : packagesets) {
-        std::cout << packageset << " " <<  index << "/" << packagesets.size() << std::endl;
+    for (auto packageset : activePackages) {
+        std::cout << packageset << " " <<  index << "/" << activePackages.size() << std::endl;
         std::string req = host + "branch=" + packageset + "&dp_name=" + packageName + "&dp_type=require";
         sleep(1);
         long http_code = getReadBuffer(req).http_code;
         if (http_code == 200) {
-            return false;
+            checked_package a;
+            a.can_delete = false;
+            a.http_code = 200;
+            return a;
+        } else if (http_code != 200 && http_code != 404) {
+            checked_package a;
+            a.can_delete = false;
+            a.http_code = http_code;
+            return a;
         }
         index++;
     }
-
-    return true;
+    checked_package a;
+    a.can_delete = true;
+    a.http_code = 404;
+    return a;
 }

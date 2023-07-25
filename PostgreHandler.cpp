@@ -70,7 +70,6 @@ std::set<std::string> PostgreHandler::getAllNames() {
 
     std::set<std::string> data;
     for (pqxx::result::const_iterator it = R.begin(); it != R.end(); it++ ) {
-        std::cout << (*it)[1] << std::endl;
         auto elem = (*it)[0]; 
         data.insert(elem.as<std::string>());
     }
@@ -86,5 +85,51 @@ bool PostgreHandler::isDeprecatedNull(std::string name) {
         auto elem = (*it)[0]; 
         return elem.is_null();
     }
+    return true;
+}
+
+bool PostgreHandler::replaceDeprecatedWith(std::string name, std::string col, std::set<std::string> data) {
+    pqxx::work W(connect);
+    auto res = W.exec("SELECT *  FROM depr WHERE name = '" + name + "'");
+    std::vector<std::string> vc(data.begin(), data.end());
+    if (res.begin() == res.end())
+        W.exec_prepared("insert_" + col, name, vc);
+    else
+        W.exec_prepared("update_" + col, name, vc);
+    W.commit();
+    
+    return true;
+}
+
+
+bool PostgreHandler::getCheckedPackage(std::string name) {
+    pqxx::work W(connect);
+    pqxx::result R (W.exec("SELECT \"check\" FROM deprcheck WHERE name = '" + name + "'"));
+    if (R.begin() == R.end()) {
+        W.exec("INSERT INTO deprcheck VALUES ('"+ name + "', null)");
+    }
+    W.commit();
+
+    pqxx::work Update(connect);
+    R = Update.exec("SELECT \"check\" FROM deprcheck WHERE name = '" + name + "'");
+    for (pqxx::result::const_iterator it = R.begin(); it != R.end(); it++ ) {
+        auto elem = (*it)[0];
+        if (elem.is_null()) {
+            Api::checked_package chk = Api::checkPackage(name);
+            if (chk.http_code == 200) {
+                Update.exec("UPDATE deprcheck SET \"check\" = false WHERE name = '" + name + "'");
+                Update.commit();
+                return false;
+            } else if   (chk.http_code == 404) {
+                Update.exec("UPDATE deprcheck SET \"check\" = true WHERE name = '" + name + "'");
+                Update.commit();
+                return true;
+            }
+        } else {
+            Update.commit();
+            return elem.as<bool>();
+        }
+    }
+    Update.commit();
     return true;
 }

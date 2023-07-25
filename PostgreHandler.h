@@ -6,6 +6,7 @@
 #include <json/json.h>
 #include <vector>
 #include <pqxx/pqxx>
+#include "Api.h"
 
 class PostgreHandler {
 public:
@@ -18,7 +19,11 @@ public:
 
     bool isDeprecatedNull(std::string name);
 
+    bool getCheckedPackage(std::string name);
+    bool setCheckedPackage(std::string name);
+
     std::set<std::string> getAllNames();
+    bool replaceDeprecatedWith(std::string name, std::string col, std::set<std::string> data);
 };
 
 

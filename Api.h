@@ -15,9 +15,17 @@ public:
         long http_code;
     };
     
+    struct checked_package {
+        long http_code;
+        bool can_delete;
+    };
+    
+
 	Api() {};
 
-    static bool checkPackage(std::string packageName); // проверяет, можно ли удалять пакет, возвращает true если можно
+    static checked_package checkPackage(std::string packageName); // проверяет, можно ли удалять пакет, возвращает true если можно
     static std::vector<std::string> getActivePackages(); // получает список активных веток
     static response getReadBuffer(std::string req); // делает запрос по url и возвращает ответ в jsonформате
+
+    static std::vector<std::string> activePackages;
 };
