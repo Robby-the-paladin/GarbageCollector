@@ -3,6 +3,9 @@
 #include <unistd.h>
 #include <set>
 #include <map>
+#include <queue>
+#include <thread>
+#include <mutex>
 #include "SpecCollector.h"
 #include "SpecParser.h"
 #include "PostgreHandler.h"
@@ -12,7 +15,9 @@
 using namespace std;
 
 //#define first_buld
-//#define insert_data
+#define insert_data
+
+std::set<std::string> errorPackages;
 
 std::ostream& operator << (std::ostream &os, const SpecParser::lib_data &lib)
 {
@@ -28,7 +33,42 @@ std::string ReplaceAll(std::string str, const std::string& from, const std::stri
     return str;
 }
 
-std::vector<std::string> Api::activePackages = Api::getActivePackages();
+//std::vector<std::string> Api::activePackages = Api::getActivePackages();
+
+PostgreHandler ph;
+
+std::mutex ph_lock;
+
+
+void parseData(std::string pname, std::string branch) {
+    //std::cout << "Parsing " << pname << " ..." << std::endl;
+    SpecCollector s;
+    SpecParser p;
+    pname = ReplaceAll(pname, "+", "%2B");
+    //cout << "Getting spec " + pname << endl;
+    string spec = s.getSpec(branch, pname);
+    cout << "\nIn package " << pname << ":\n";
+    cerr << "\nIn package " << pname << ":\n";
+            //auto packages = p.getBuildRequiresPrePackages(spec);
+
+    auto cur_error = p.error;
+    auto packages = p.getDeprecatedPackages_test(spec);
+    
+    auto test = p.strToStructSet_lib_data(packages);
+
+    if (cur_error != p.error) {
+        errorPackages.insert(pname);
+    } else {
+        ph_lock.lock();
+        ph.addDeprecated(pname, "data", packages);
+        ph_lock.unlock();
+    }
+
+    for (auto pack : test) {
+        std::cout << pack << " ; ";
+    }
+    std::cout << '\n';
+}
 
 int main() {
     try {
@@ -58,39 +98,28 @@ int main() {
     auto save_names = ph.getAllNames();
     //return 0;
     string branch = "p10";
+    cout << "Branch: " << branch << endl;
     vector<string> pnames = s.getBranchPackageNames(branch);
+    cout << "Packages: " << pnames.size() << endl;
     int successful = 0;
    // vector<string> pnames;
-    std::set<std::string> errorPackages;
     
     // pnames = {"opennebula","fonts-bitmap-knm-new-fixed"};
     // pnames = {"boost"};
     //pnames = {"libtolua++-lua5.1", "tintin++", "tolua++", "libvsqlite++"};
     #ifdef insert_data
+        std::queue<std::thread> threads;
         for (auto pname : pnames) {
-            pname = ReplaceAll(pname, "+", "%2B");
-
-            sleep(1);
-            string spec = s.getSpec(branch, pname);
-            cout << "\nIn package " << pname << ":\n";
-            cerr << "\nIn package " << pname << ":\n";
-            //auto packages = p.getBuildRequiresPrePackages(spec);
-
-            auto cur_error = p.error;
-            auto packages = p.getDeprecatedPackages_test(spec);
-
-            auto test = p.strToStructSet_lib_data(packages);
-
-            if (cur_error != p.error) {
-            errorPackages.insert(pname);
-            } else {
-                ph.addDeprecated(pname, "data", packages);
+            std::thread thr(parseData, pname, branch);
+            threads.push(std::move(thr));
+            while(threads.size() > 100) {
+                threads.front().join();
+                threads.pop();
             }
-
-            for (auto pack : test) {
-            std::cout << pack << " ; ";
-            }
-            std::cout << '\n';
+        }
+        while (!threads.empty()) {
+            threads.front().join();
+            threads.pop();
         }
         return 0;
     #endif

@@ -7,19 +7,24 @@ static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* use
 }
 
 Json::Value SpecCollector::getSpecResponse(std::string branch, std::string name) {
-    std::string host = "https://rdb.altlinux.org/api/package/specfile_by_name";
+    //std::string host = "https://rdb.altlinux.org/api/package/specfile_by_name";
+    Api a;
+    std::string host = "http://64.226.73.174:8080/api/package/specfile_by_name";
     std::string req = host + "?" + "branch=" + branch + "&" + "name=" + name;
-    auto root = Api::getReadBuffer(req).root;
+    auto root = a.getReadBuffer(req).root;
 
     return root;
 }
 
 std::vector<std::string> SpecCollector::getBranchPackageNames(std::string branch) {
     std::vector<std::string> result;
+    Api a;
 
-    std::string host = "https://rdb.altlinux.org/api/export/sitemap_packages/";
+    //std::string host = "https://rdb.altlinux.org/api/export/sitemap_packages/";
+    std::string host = "http://64.226.73.174:8080/api/export/sitemap_packages/";
     std::string req = host + branch;
-    auto root = Api::getReadBuffer(req).root;
+    std::cout << req << std::endl;
+    auto root = a.getReadBuffer(req).root;
     for (auto pack : root["packages"]) {
         result.push_back(pack["name"].asString());
     }

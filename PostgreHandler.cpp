@@ -103,6 +103,7 @@ bool PostgreHandler::replaceDeprecatedWith(std::string name, std::string col, st
 
 
 bool PostgreHandler::getCheckedPackage(std::string name) {
+    Api a;
     pqxx::work W(connect);
     pqxx::result R (W.exec("SELECT \"check\" FROM deprcheck WHERE name = '" + name + "'"));
     if (R.begin() == R.end()) {
@@ -115,7 +116,7 @@ bool PostgreHandler::getCheckedPackage(std::string name) {
     for (pqxx::result::const_iterator it = R.begin(); it != R.end(); it++ ) {
         auto elem = (*it)[0];
         if (elem.is_null()) {
-            Api::checked_package chk = Api::checkPackage(name, "p10");
+            Api::checked_package chk = a.checkPackage(name, "p10");
             if (chk.http_code == 200) {
                 Update.exec("UPDATE deprcheck SET \"check\" = false WHERE name = '" + name + "'");
                 Update.commit();

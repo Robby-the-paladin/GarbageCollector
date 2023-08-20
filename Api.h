@@ -23,9 +23,9 @@ public:
 
 	Api() {};
 
-    static checked_package checkPackage(std::string packageName, std::string branch); // проверяет, можно ли удалять пакет, возвращает true если можно
-    static std::vector<std::string> getActivePackages(); // получает список активных веток
-    static response getReadBuffer(std::string req); // делает запрос по url и возвращает ответ в jsonформате
+    checked_package checkPackage(std::string packageName, std::string branch); // проверяет, можно ли удалять пакет, возвращает true если можно
+    std::vector<std::string> getActivePackages(); // получает список активных веток
+    response getReadBuffer(std::string req); // делает запрос по url и возвращает ответ в jsonформате
 
-    static std::vector<std::string> activePackages;
+    std::vector<std::string> activePackages;
 };
