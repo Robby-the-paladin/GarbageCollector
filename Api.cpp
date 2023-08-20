@@ -32,7 +32,7 @@ Api::response Api::getReadBuffer(std::string req) {
     bool parser_success = reader.parse(readBuffer, root);
     if (!parser_success) {
         std::cout << "JSON parser error\n";
-        return {NULL, http_code};
+        return {root, http_code};
     }
     return {root, http_code};
 }

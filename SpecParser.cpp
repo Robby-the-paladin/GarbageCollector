@@ -5,7 +5,12 @@
 //     return os << lib.name << " " << lib.sign << " " << lib.version << " " << lib.type;
 // }
 
+std::string prepareSpec(std::string specfile) {
+	return specfile.substr(0, specfile.size() - specfile.find("%configure"));
+}
+
 std::set<std::string> SpecParser::getDeprecatedPackages(std::string specfile) {
+	specfile = prepareSpec(specfile);
 	std::set<std::string> result;
 
 	std::ofstream outspec;
@@ -91,6 +96,8 @@ std::set<std::string> SpecParser::getDeprecatedPackages(std::string specfile) {
 }
 
 std::set<std::string> SpecParser::getBuildRequiresPrePackages(std::string specfile) {
+	specfile = prepareSpec(specfile);
+
 	std::set<std::string> result;
 
 	std::string spec = specfile;	
