@@ -115,7 +115,7 @@ bool PostgreHandler::getCheckedPackage(std::string name) {
     for (pqxx::result::const_iterator it = R.begin(); it != R.end(); it++ ) {
         auto elem = (*it)[0];
         if (elem.is_null()) {
-            Api::checked_package chk = Api::checkPackage(name);
+            Api::checked_package chk = Api::checkPackage(name, "p10");
             if (chk.http_code == 200) {
                 Update.exec("UPDATE deprcheck SET \"check\" = false WHERE name = '" + name + "'");
                 Update.commit();

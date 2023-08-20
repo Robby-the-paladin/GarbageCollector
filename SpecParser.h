@@ -22,7 +22,7 @@ public:
 
 	std::set<std::string> getDeprecatedPackages_test(std::string specfile);
 
-	lib_data* strToStruct_lib_data(std::string data);
-	std::vector<lib_data> strToStructSet_lib_data(std::set<std::string> libs);
+	static lib_data* strToStruct_lib_data(std::string data);
+	static std::vector<lib_data> strToStructSet_lib_data(std::set<std::string> libs);
 };
 

@@ -50,11 +50,48 @@ std::vector<std::string> Api::getActivePackages() {
     return packagesets;
 }
 
-Api::checked_package Api::checkPackage(std::string packageName) {
+Api::checked_package Api::checkPackage(std::string packageName, std::string branch) {
     // TODO: если пакет с данным именем присутствует в Requires api то false иначе true
     std::string host = "https://rdb.altlinux.org/api/dependencies/packages_by_dependency?";
     
+
+    host = "https://rdb.altlinux.org/api/package/what_depends_src?"; 
+
+    // https://rdb.altlinux.org/api/package/what_depends_src?packages=python3-dev&branch=p10&depth=5&dptype=both&finite_package=false&oneandhalf=false&use_last_tasks=false
+
     //std::vector<std::string> packagesets = getActivePackages();
+
+    host = "https://rdb.altlinux.org/api/package/what_depends_src?";
+
+    std::string req = host + "packages=" + packageName + "&branch=" + branch + "&depth=5&dptype=both&finite_package=false&oneandhalf=false&use_last_tasks=false";
+
+    Api::response resp = getReadBuffer(req);
+    long http_code = resp.http_code;
+
+    if (http_code == 200) {
+        for (auto S: resp.root["dependencies"]) {
+            for (auto name: S["requires"]) {
+                if (name == packageName) {
+                    checked_package a;
+                    a.can_delete = false;
+                    a.http_code = 200;
+                    return a;
+                }
+            }
+        }
+    } else {
+        checked_package a;
+        a.can_delete = false;
+        a.http_code = http_code;
+        return a;
+    }
+    checked_package a;
+    a.can_delete = true;
+    a.http_code = 404;
+    return a;
+
+
+    /*
     int index = 1;
     for (auto packageset : activePackages) {
         std::cout << packageset << " " <<  index << "/" << activePackages.size() << std::endl;
@@ -74,8 +111,10 @@ Api::checked_package Api::checkPackage(std::string packageName) {
         }
         index++;
     }
+    
     checked_package a;
     a.can_delete = true;
     a.http_code = 404;
     return a;
+    */
 }
