@@ -3,6 +3,7 @@
 #include <string>
 #include <set>
 #include <unistd.h>
+#include <mutex>
 #include <json/json.h>
 #include <vector>
 #include <pqxx/pqxx>
@@ -10,6 +11,8 @@
 
 class PostgreHandler {
 public:
+    std::mutex ph_lock;
+    int test = 0;
     pqxx::connection connect;
 	PostgreHandler();
     void reconnect();
@@ -19,7 +22,7 @@ public:
 
     bool isDeprecatedNull(std::string name);
 
-    bool getCheckedPackage(std::string name);
+    std::vector<std::string> getCheckedPackages(std::vector<std::string> names, std::string branch);
     bool setCheckedPackage(std::string name);
 
     std::set<std::string> getAllNames();

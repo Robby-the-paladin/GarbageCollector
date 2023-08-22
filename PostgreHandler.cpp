@@ -102,35 +102,74 @@ bool PostgreHandler::replaceDeprecatedWith(std::string name, std::string col, st
 }
 
 
-bool PostgreHandler::getCheckedPackage(std::string name) {
+std::vector<std::string> PostgreHandler::getCheckedPackages(std::vector<std::string> names, std::string branch) {
     Api a;
-    pqxx::work W(connect);
-    pqxx::result R (W.exec("SELECT \"check\" FROM deprcheck WHERE name = '" + name + "'"));
-    if (R.begin() == R.end()) {
-        W.exec("INSERT INTO deprcheck VALUES ('"+ name + "', null)");
-    }
-    W.commit();
+    std::vector<std::string> check, out_true, out_false;
+    for (auto name: names) {
+        ph_lock.lock();
+        pqxx::work W(connect);
+        pqxx::result R (W.exec("SELECT \"check\" FROM deprcheck WHERE name = '" + name + "'"));
+        if (R.begin() == R.end()) {
+            W.exec("INSERT INTO deprcheck VALUES ('"+ name + "', null)");
+        }
+        W.commit();
+      //  ph_lock.unlock();
+    
+        pqxx::work Update(connect);
+      //  pqxx::result R;
+        R = Update.exec("SELECT \"check\" FROM deprcheck WHERE name = '" + name + "'");
+        Update.commit();
+        ph_lock.unlock();
 
-    pqxx::work Update(connect);
-    R = Update.exec("SELECT \"check\" FROM deprcheck WHERE name = '" + name + "'");
-    for (pqxx::result::const_iterator it = R.begin(); it != R.end(); it++ ) {
-        auto elem = (*it)[0];
-        if (elem.is_null()) {
-            Api::checked_package chk = a.checkPackage(name, "p10");
-            if (chk.http_code == 200) {
-                Update.exec("UPDATE deprcheck SET \"check\" = false WHERE name = '" + name + "'");
-                Update.commit();
-                return false;
-            } else if   (chk.http_code == 404) {
-                Update.exec("UPDATE deprcheck SET \"check\" = true WHERE name = '" + name + "'");
-                Update.commit();
-                return true;
+        for (pqxx::result::const_iterator it = R.begin(); it != R.end(); it++ ) {
+            auto elem = (*it)[0];
+            if (elem.is_null()) {
+                bool check_name = true;
+                for(int i = 0; i < name.size(); i++) {
+                    if (!((name[i] >= 'a' && name[i] <= 'z') ||
+                        (name[i] >= 'A' && name[i] <= 'Z') ||
+                        (name[i] >= '0' && name[i] <= '9') ||
+                         name[i] == '.' || name[i] == '_' || name[i] == '%')) {
+                            check_name = false;
+                            break;
+                        }
+                }
+                if (!check_name) {
+                    continue;
+                }
+                check.push_back(name);
+            } else {
+                if (elem.as<bool>()) {
+                    out_true.push_back(name);
+                } else {
+                    out_false.push_back(name);
+                }
+                //return elem.as<bool>();
             }
-        } else {
-            Update.commit();
-            return elem.as<bool>();
         }
     }
-    Update.commit();
-    return true;
+
+
+    std::vector<Api::checked_package> chks = a.checkPackage(check, branch);
+
+    for (auto chk: chks) {
+        ph_lock.lock();
+        pqxx::work Up(connect);
+        if (chk.http_code == 200) {
+            Up.exec("UPDATE deprcheck SET \"check\" = false WHERE name = '" + chk.name + "'");
+           // Up.commit();
+            //ph_lock.unlock();
+            //return false;
+        } else if   (chk.http_code == 404) {
+            Up.exec("UPDATE deprcheck SET \"check\" = true WHERE name = '" + chk.name + "'");
+          //  Up.commit();
+          //  ph_lock.unlock();
+            out_true.push_back(chk.name);
+            //return true;
+        }
+        Up.commit();
+        ph_lock.unlock();
+    }
+    
+    return out_true;
 }

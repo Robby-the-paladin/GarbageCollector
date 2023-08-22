@@ -15,7 +15,9 @@
 using namespace std;
 
 //#define first_buld
-#define insert_data
+// #define insert_data
+#define insert_depr_data
+
 
 std::set<std::string> errorPackages;
 
@@ -70,6 +72,49 @@ void parseData(std::string pname, std::string branch) {
     std::cout << '\n';
 }
 
+void deprCheck(std::string pname, std::string branch) {
+    std::cout << "\nSearching deprecated packages\n" << ph.test << " " << std::endl;
+    ph.test = ph.test + 1;
+    pname = ReplaceAll(pname, "+", "%2B");
+    
+    // if (!ph.isDeprecatedNull(pname)) {
+    //     cout << "SKIP package name: " << pname << endl;
+    //     continue;
+    // }
+    std::cout << "\nIn package " << pname << ":\n";
+    cerr << "\nIn package " << pname << ":\n";
+    set<string> data, depr_data;
+
+    ph.ph_lock.lock();
+    ph.getDeprecated(pname, "data", data);
+    ph.ph_lock.unlock();
+
+    vector<SpecParser::lib_data> structs_data = SpecParser::strToStructSet_lib_data(data);
+    int index = 0;
+    vector<std::string> names;
+    for (auto pack : structs_data) {
+        if (pack.name == "") {
+            continue;
+        }
+        pack.name = ReplaceAll(pack.name, "+", "%2B");
+        pack.name = ReplaceAll(pack.name, " ", "");
+        pack.name = ReplaceAll(pack.name, "    ", "");
+       // sleep(1);
+        
+        names.push_back(pack.name);
+      //  std::cout << "   " << pack.name << endl;
+        index++;
+    }
+
+    std::vector<std::string> can_delete = ph.getCheckedPackages(names, branch);
+    depr_data = std::set<std::string>(can_delete.begin(), can_delete.end());
+    
+    ph.ph_lock.lock();
+    ph.addDeprecated(pname, "depr_data", depr_data);
+    ph.ph_lock.unlock();
+
+}
+
 int main() {
     try {
     // Connect to the database
@@ -121,7 +166,22 @@ int main() {
             threads.front().join();
             threads.pop();
         }
-        return 0;
+    #endif
+
+    #ifdef insert_depr_data
+        std::queue<std::thread> threads;
+        for (auto pname : pnames) {
+            std::thread thr(deprCheck, pname, branch);
+            threads.push(std::move(thr));
+            while(threads.size() > 50) {
+                threads.front().join();
+                threads.pop();
+            }
+        }
+        while (!threads.empty()) {
+            threads.front().join();
+            threads.pop();
+        }
     #endif
     /*
     for (auto pname : pnames) {
@@ -198,42 +258,42 @@ int main() {
     
     
     //map<string, bool> checked_packages = {};
-    cout << "\nSearching deprecated packages\n";
-    for (auto pname : pnames) {
-        pname = ReplaceAll(pname, "+", "%2B");
+    // cout << "\nSearching deprecated packages\n";
+    // for (auto pname : pnames) {
+    //     pname = ReplaceAll(pname, "+", "%2B");
         
-        // if (!ph.isDeprecatedNull(pname)) {
-        //     cout << "SKIP package name: " << pname << endl;
-        //     continue;
-        // }
-        cout << "\nIn package " << pname << ":\n";
-        cerr << "\nIn package " << pname << ":\n";
-        set<string> data, depr_data;
-        ph.getDeprecated(pname, "data", data);
+    //     // if (!ph.isDeprecatedNull(pname)) {
+    //     //     cout << "SKIP package name: " << pname << endl;
+    //     //     continue;
+    //     // }
+    //     cout << "\nIn package " << pname << ":\n";
+    //     cerr << "\nIn package " << pname << ":\n";
+    //     set<string> data, depr_data;
+    //     ph.getDeprecated(pname, "data", data);
 
-        vector<SpecParser::lib_data> structs_data = SpecParser::strToStructSet_lib_data(data);
+    //     vector<SpecParser::lib_data> structs_data = SpecParser::strToStructSet_lib_data(data);
 
-        for (auto pack : structs_data) {
+    //     for (auto pack : structs_data) {
             
-            pack.name = ReplaceAll(pack.name, "+", "%2B");
-            pack.name = ReplaceAll(pack.name, " ", "");
-            // if (checked_packages.find( pack ) != checked_packages.end()) {
-            //     if (pack != "" && checked_packages[pack]) {
-            //         depr_data.insert(pack);
-            //         cout << "SKIP HASHED pack name: " << pack << endl;
-            //     }
-            //     continue;
-            // }
-            sleep(1);
-            cout << "   " << pack.name << endl;
-            if (pack.name != "" && ph.getCheckedPackage(pack.name)) {
-                //cout << pack << " ";
-                depr_data.insert(pack.name);
-            }
-        }
-        cout << "\n";
-        ph.addDeprecated(pname, "depr_data", depr_data);
-    }
+    //         pack.name = ReplaceAll(pack.name, "+", "%2B");
+    //         pack.name = ReplaceAll(pack.name, " ", "");
+    //         // if (checked_packages.find( pack ) != checked_packages.end()) {
+    //         //     if (pack != "" && checked_packages[pack]) {
+    //         //         depr_data.insert(pack);
+    //         //         cout << "SKIP HASHED pack name: " << pack << endl;
+    //         //     }
+    //         //     continue;
+    //         // }
+    //         sleep(1);
+    //         cout << "   " << pack.name << endl;
+    //         if (pack.name != "" && ph.getCheckedPackage(pack.name)) {
+    //             //cout << pack << " ";
+    //             depr_data.insert(pack.name);
+    //         }
+    //     }
+    //     cout << "\n";
+    //     ph.addDeprecated(pname, "depr_data", depr_data);
+    // }
     
     //ph.connect.disconnect();
 
