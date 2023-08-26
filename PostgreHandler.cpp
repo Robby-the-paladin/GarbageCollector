@@ -19,8 +19,7 @@ void PostgreHandler::reconnect() {
     try {
         times++;
         if(!connect.is_open()) {
-            //Устаревшее использование
-            //connect = pqxx::connection(postgreConnStr);
+            connect = pqxx::connection(postgreConnStr);
         }
         times = 0;
     }
