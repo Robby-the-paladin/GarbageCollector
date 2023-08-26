@@ -14,7 +14,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: prepare
-      run: sudo apt-get install -y libcurl4-openssl-dev libjsoncpp-dev
+      run: sudo apt-get install -y libcurl4-openssl-dev libjsoncpp-dev libpqxx-dev
     - name: mk build
       run: rm -rf ./build && mkdir build
     - name: build

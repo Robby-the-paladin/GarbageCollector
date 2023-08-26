@@ -14,10 +14,13 @@
 
 using namespace std;
 
-//#define first_buld
-// #define insert_data
-#define insert_depr_data
-
+// А точно безоавсно хранить админский ключ в строке на гите, и так сойдет ...
+std::string postgreConnStr = "user=doadmin password=AVNS_xMD70wwF41Btbfo6iaz host=db-postgresql-fra1-79796-do-user-14432859-0.b.db.ondigitalocean.com port=25060 dbname=test target_session_attrs=read-write";
+//Прокся
+std::string apiURL = "http://64.226.73.174:8080";
+//не прокся (медленно)
+//std::string apiURL = "https://rdb.altlinux.org";
+int threadsSize = 60;
 
 std::set<std::string> errorPackages;
 
@@ -35,7 +38,6 @@ std::string ReplaceAll(std::string str, const std::string& from, const std::stri
     return str;
 }
 
-//std::vector<std::string> Api::activePackages = Api::getActivePackages();
 
 PostgreHandler ph;
 
@@ -115,24 +117,45 @@ void deprCheck(std::string pname, std::string branch) {
 
 }
 
-int main() {
+set<std::string> getUnicalPackageNames(vector<std::string> fromApi, set<std::string> fromDB){
+    std::set<std::string> remaining_names;
+
+    for (const std::string& name : fromApi) {
+        if (fromDB.find(name) == fromDB.end()) {
+            remaining_names.insert(name);
+        }
+    }
+    return remaining_names;
+}
+
+int main(int argc, char *argv[]) {
+    std::map<string, bool> actionsMap;
+    for (int i = 1; i < argc; i++) {
+        actionsMap[argv[i]] =true;
+    }
+    if (argc == 1){
+        cout<<"Передайте в командной строке что вы хотите сделать"<<endl;
+        cout<<"first_buld, insert_data, insert_depr_data"<<endl;
+
+        return 0;
+    }
+    int maxThreads = std::thread::hardware_concurrency() ;
+    if (maxThreads < threadsSize) {
+        threadsSize = maxThreads;
+    }
     try {
     // Connect to the database
-        pqxx::connection c("user=edgar password=genius host=host.docker.internal port=5432 dbname=test target_session_attrs=read-write");
+        pqxx::connection c(postgreConnStr);
     } catch (const exception &e) {
         cerr << e.what() << endl;
-     //   return 1;
     }
-    //return 0;
-    #ifdef first_buld
-        std::cout << "Edgar genius!" << std::endl;
+    if (actionsMap.find("first_buld") != actionsMap.end()){
         string l;
         while (cin >> l) {
             cout << l;
             system(("apt-get install -y " + l).c_str());
         }
-    #endif
-   // return 0;
+    }
     SpecCollector s;
     SpecParser p;
     PostgreHandler ph;
@@ -140,49 +163,62 @@ int main() {
     set<string> keywords;
     keywords.insert("Obsoletes:");
     keywords.insert("Provides:");
-    auto save_names = ph.getAllNames();
     //return 0;
     string branch = "p10";
     cout << "Branch: " << branch << endl;
     vector<string> pnames = s.getBranchPackageNames(branch);
-    cout << "Packages: " << pnames.size() << endl;
+    auto unicalPackages = getUnicalPackageNames(pnames,ph.getNamesWithData());
+    cout << "Packages: " << pnames.size() << " Unical "<< unicalPackages.size()<< endl;
     int successful = 0;
    // vector<string> pnames;
+    int system_threads_count_insert_data = 0;
+    int system_threads_count_insert_depr_data = 0;
     
     // pnames = {"opennebula","fonts-bitmap-knm-new-fixed"};
     // pnames = {"boost"};
     //pnames = {"libtolua++-lua5.1", "tintin++", "tolua++", "libvsqlite++"};
-    #ifdef insert_data
+    if (actionsMap.find("insert_data") != actionsMap.end()){
         std::queue<std::thread> threads;
-        for (auto pname : pnames) {
+        for (auto pname : unicalPackages) {
             std::thread thr(parseData, pname, branch);
             threads.push(std::move(thr));
-            while(threads.size() > 100) {
-                threads.front().join();
-                threads.pop();
+            if  (threads.size() > threadsSize) {
+                while(threads.size() > 0) {
+                    threads.front().join();
+                    threads.pop();
+                }
+                cout << "\033[31mЗавершил порцию потоков для insert_data"<<system_threads_count_insert_data<< " \033[0m" <<endl;
+                system_threads_count_insert_data++;
             }
         }
         while (!threads.empty()) {
             threads.front().join();
             threads.pop();
         }
-    #endif
+    }
 
-    #ifdef insert_depr_data
+
+    auto save_names = ph.getAllNames();
+    save_names = ph.getNamesWithData();
+    if (actionsMap.find("insert_depr_data") != actionsMap.end()){
         std::queue<std::thread> threads;
-        for (auto pname : pnames) {
+        for (auto pname : save_names) {
             std::thread thr(deprCheck, pname, branch);
             threads.push(std::move(thr));
-            while(threads.size() > 50) {
-                threads.front().join();
-                threads.pop();
+            if  (threads.size() > threadsSize) {
+                while(threads.size() > 0){
+                    threads.front().join();
+                    threads.pop();
+                }
+                cout << "\033[31mЗавершил порцию потоков для insert_depr_data"<< system_threads_count_insert_depr_data<<" \033[0m" <<endl;
+                system_threads_count_insert_depr_data++;
             }
         }
         while (!threads.empty()) {
             threads.front().join();
             threads.pop();
         }
-    #endif
+    }
     /*
     for (auto pname : pnames) {
         

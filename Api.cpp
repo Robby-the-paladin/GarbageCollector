@@ -1,5 +1,6 @@
 #include "Api.h"
 
+extern std::string apiURL;
 
 size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp)
 {
@@ -16,7 +17,8 @@ Api::response Api::getReadBuffer(std::string req) {
     if (curl) {
         //std::cout << req << "\n";
         curl_easy_setopt(curl, CURLOPT_URL, req.c_str());
-        
+        //таймаут для запроса (иначе треш)
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 100);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
@@ -42,8 +44,8 @@ Api::response Api::getReadBuffer(std::string req) {
 /// @brief 
 /// @return 
 std::vector<std::string> Api::getActivePackages() {
-    std::string req = "https://rdb.altlinux.org/api/packageset/active_packagesets";
-    req = "http://64.226.73.174:8080/api/packageset/active_packagesets";
+    //std::string req = "https://rdb.altlinux.org/api/packageset/active_packagesets";
+    std::string req = apiURL+"/api/packageset/active_packagesets";
     Json::Value root = getReadBuffer(req).root;
     
     Json::Value name = root["packagesets"];
@@ -57,13 +59,12 @@ std::vector<std::string> Api::getActivePackages() {
 
 std::vector<Api::checked_package> Api::checkPackage(std::vector<std::string> packagesNames, std::string branch) {
     // TODO: если пакет с данным именем присутствует в Requires api то false иначе true
-    std::string host = "https://rdb.altlinux.org/api/dependencies/packages_by_dependency?";
+
 
     // https://rdb.altlinux.org/api/package/what_depends_src?packages=python3-dev&branch=p10&depth=5&dptype=both&finite_package=false&oneandhalf=false&use_last_tasks=false
 
     //std::vector<std::string> packagesets = getActivePackages();
-
-    host = "http://64.226.73.174:8080/api/package/what_depends_src?";
+    std::string host = apiURL+"/api/package/what_depends_src?";
 
     std::ostringstream oss;
     std::vector<Api::checked_package> out;

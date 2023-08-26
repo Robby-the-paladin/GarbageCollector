@@ -1,6 +1,8 @@
 #include "PostgreHandler.h"
 
-PostgreHandler::PostgreHandler(): connect(pqxx::connection("user=edgar password=genius host=host.docker.internal port=5432 dbname=test target_session_attrs=read-write")) {
+extern std::string postgreConnStr;
+
+PostgreHandler::PostgreHandler(): connect(pqxx::connection(postgreConnStr)) {
    
     pqxx::work W(connect);
     W.exec("CREATE TABLE IF NOT EXISTS depr (name TEXT PRIMARY KEY, data TEXT[], depr_data TEXT[])");
@@ -17,7 +19,7 @@ void PostgreHandler::reconnect() {
     try {
         times++;
         if(!connect.is_open()) {
-            connect = pqxx::connection("user=edgar password=genius host=host.docker.internal port=5432 dbname=test target_session_attrs=read-write");
+            connect = pqxx::connection(postgreConnStr);
         }
         times = 0;
     }
@@ -67,6 +69,19 @@ bool PostgreHandler::getDeprecated(std::string name, std::string col,  std::set<
 std::set<std::string> PostgreHandler::getAllNames() {
     pqxx::work W(connect);
     pqxx::result R (W.exec("SELECT name FROM depr"));
+
+    std::set<std::string> data;
+    for (pqxx::result::const_iterator it = R.begin(); it != R.end(); it++ ) {
+        auto elem = (*it)[0]; 
+        data.insert(elem.as<std::string>());
+    }
+    W.commit();
+    return data;
+}
+
+std::set<std::string> PostgreHandler::getNamesWithData() {
+    pqxx::work W(connect);
+    pqxx::result R (W.exec("SELECT name FROM depr WHERE NOT (depr.data is null OR depr.data='{}')"));
 
     std::set<std::string> data;
     for (pqxx::result::const_iterator it = R.begin(); it != R.end(); it++ ) {

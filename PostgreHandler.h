@@ -26,6 +26,7 @@ public:
     bool setCheckedPackage(std::string name);
 
     std::set<std::string> getAllNames();
+    std::set<std::string> getNamesWithData();
     bool replaceDeprecatedWith(std::string name, std::string col, std::set<std::string> data);
 };
 
