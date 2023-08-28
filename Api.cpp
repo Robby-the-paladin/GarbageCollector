@@ -119,32 +119,32 @@ std::vector<Api::checked_package> Api::checkPackage(std::vector<std::string> pac
         std::cout << "Странный ответ от апи/прокси: " << http_code << " " << oss.str() << std::endl;
     }
     return out;
+}
 
-
-    /*
-    int index = 1;
-    for (auto packageset : activePackages) {
-        std::cout << packageset << " " <<  index << "/" << activePackages.size() << std::endl;
-        std::string req = host + "branch=" + packageset + "&dp_name=" + packageName + "&dp_type=require";
-        sleep(1);
-        long http_code = getReadBuffer(req).http_code;
-        if (http_code == 200) {
-            checked_package a;
-            a.can_delete = false;
-            a.http_code = 200;
-            return a;
-        } else if (http_code != 200 && http_code != 404) {
-            checked_package a;
-            a.can_delete = false;
-            a.http_code = http_code;
-            return a;
+std::optional<std::string> Api::getHash(std::string branch, std::string name){
+    auto result = getReadBuffer(apiURL + "/site/pkghash_by_name?branch=" + branch + "&name=" + name);
+    if (result.http_code == 404) {
+        result = getReadBuffer(apiURL + "pkghash_by_binary_name?branch=" + branch + "&name=" + name + "&arch=x86_64");
+        if (result.http_code == 404) {
+            result = getReadBuffer(apiURL + "pkghash_by_binary_name?branch=" + branch + "&name=" + name + "&arch=noarch");
         }
-        index++;
     }
-    
-    checked_package a;
-    a.can_delete = true;
-    a.http_code = 404;
-    return a;
-    */
+    if (result.http_code != 200)
+        return std::nullopt;
+    return result.root["pkghash"].asString();
+}
+
+std::optional<std::pair<long long, std::string>> Api::getDate(std::string branch, std::string name) {
+    auto hash_ = getHash(branch, name);
+    if (!hash_.has_value())
+        return std::nullopt;
+    std::string hash = *hash_;
+    auto result = getReadBuffer(apiURL + "site/package_info/" + hash + "?branch=" + branch + "&changelog_last=1&package_type=source");
+    if (result.http_code == 404) {
+        result = getReadBuffer(apiURL + "site/package_info/" + hash + "?branch=" + branch + "&changelog_last=1&package_type=binary");
+    }
+    if (result.http_code != 200)
+        return std::nullopt;
+    std::pair<int, std::string> date = {result.root["buildtime"].asInt64(), result.root["task_date"].asString()};
+    return date;
 }

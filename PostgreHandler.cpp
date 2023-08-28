@@ -6,6 +6,7 @@ PostgreHandler::PostgreHandler(): connect(pqxx::connection(postgreConnStr)) {
    
     pqxx::work W(connect);
     W.exec("CREATE TABLE IF NOT EXISTS depr (name TEXT PRIMARY KEY, data TEXT[], depr_data TEXT[])");
+    W.exec("CREATE TABLE IF NOT EXISTS deprcheck (name TEXT PRIMARY KEY, \"check\" boolean, buildtime INTEGER)");
     W.commit();
     connect.prepare("insert_data", "INSERT INTO depr VALUES ($1, $2, null)");
     connect.prepare("insert_depr_data", "INSERT INTO depr VALUES ($1, null, $2)");
@@ -104,6 +105,7 @@ bool PostgreHandler::isDeprecatedNull(std::string name) {
 }
 
 bool PostgreHandler::replaceDeprecatedWith(std::string name, std::string col, std::set<std::string> data) {
+    ph_lock.lock();
     pqxx::work W(connect);
     auto res = W.exec("SELECT *  FROM depr WHERE name = '" + name + "'");
     std::vector<std::string> vc(data.begin(), data.end());
@@ -112,6 +114,7 @@ bool PostgreHandler::replaceDeprecatedWith(std::string name, std::string col, st
     else
         W.exec_prepared("update_" + col, name, vc);
     W.commit();
+    ph_lock.unlock();
     
     return true;
 }
@@ -187,4 +190,29 @@ std::vector<std::string> PostgreHandler::getCheckedPackages(std::vector<std::str
     }
     
     return out_true;
+}
+
+bool PostgreHandler::checkDeprDate(std::string pname, std::string branch) {
+    ph_lock.lock();
+    pqxx::work W(connect);
+    pqxx::result R (W.exec("SELECT builtime FROM deprcheck WHERE name = '" + pname + "'"));
+    ph_lock.unlock();
+    auto elem = (*R.begin())[0];
+    Api api;
+    int time;
+    if (elem.is_null()) {
+        auto result = api.getDate(branch, pname);
+        time = result.value().first;
+        ph_lock.lock();
+        pqxx::work Up(connect);
+        Up.exec_params1("UPDATE deprcheck SET \"buildtime\" = $1 WHERE name = '" + pname + "'", result.value().first);
+        ph_lock.unlock();
+    } else {
+        time = elem.as<int>();
+    }
+    auto five_years = std::chrono::seconds(157788000);
+    auto unix_timestamp = std::chrono::seconds(std::time(NULL));
+    if (five_years < std::chrono::duration_cast<std::chrono::seconds>(unix_timestamp - std::chrono::seconds(time)))
+        return true;
+    return false;
 }

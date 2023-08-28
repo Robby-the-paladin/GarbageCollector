@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <mutex>
 #include <json/json.h>
+#include <chrono>
 #include <vector>
 #include <pqxx/pqxx>
 #include "Api.h"
@@ -28,6 +29,8 @@ public:
     std::set<std::string> getAllNames();
     std::set<std::string> getNamesWithData();
     bool replaceDeprecatedWith(std::string name, std::string col, std::set<std::string> data);
+
+    bool checkDeprDate(std::string pname, std::string branch);
 };
 
 

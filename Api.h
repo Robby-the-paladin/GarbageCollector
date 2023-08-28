@@ -30,5 +30,8 @@ public:
     std::vector<std::string> getActivePackages(); // получает список активных веток
     response getReadBuffer(std::string req); // делает запрос по url и возвращает ответ в jsonформате
 
+    std::optional<std::string> getHash(std::string branch, std::string name);
+    std::optional<std::pair<long long, std::string>> getDate(std::string branch, std::string name);
+
     std::vector<std::string> activePackages;
 };

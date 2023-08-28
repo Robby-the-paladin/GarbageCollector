@@ -38,10 +38,7 @@ std::string ReplaceAll(std::string str, const std::string& from, const std::stri
     return str;
 }
 
-
 PostgreHandler ph;
-
-std::mutex ph_lock;
 
 
 void parseData(std::string pname, std::string branch) {
@@ -63,9 +60,9 @@ void parseData(std::string pname, std::string branch) {
     if (cur_error != p.error) {
         errorPackages.insert(pname);
     } else {
-        ph_lock.lock();
+        ph.ph_lock.lock();
         ph.addDeprecated(pname, "data", packages);
-        ph_lock.unlock();
+        ph.ph_lock.unlock();
     }
 
     for (auto pack : test) {
@@ -117,6 +114,24 @@ void deprCheck(std::string pname, std::string branch) {
 
 }
 
+void parseDate(std::string pname, std::string branch) {
+    std::cout << "\nReceiving build time\n" << std::endl;
+    pname = ReplaceAll(pname, "+", "%2B");
+
+    set<string> depr_data, new_data;
+
+    ph.ph_lock.lock();
+    ph.getDeprecated(pname, "depr_data", depr_data);
+    ph.ph_lock.unlock();
+
+    for (auto data : depr_data) {
+        if (ph.checkDeprDate(data, branch))
+            new_data.insert(data);
+    }
+
+    ph.replaceDeprecatedWith(pname, "depr_data", new_data);
+}
+
 set<std::string> getUnicalPackageNames(vector<std::string> fromApi, set<std::string> fromDB){
     std::set<std::string> remaining_names;
 
@@ -127,6 +142,8 @@ set<std::string> getUnicalPackageNames(vector<std::string> fromApi, set<std::str
     }
     return remaining_names;
 }
+
+
 
 int main(int argc, char *argv[]) {
     std::map<string, bool> actionsMap;
@@ -219,6 +236,25 @@ int main(int argc, char *argv[]) {
             threads.pop();
         }
     }
+
+    std::queue<std::thread> threads;
+    for (auto pname : save_names) {
+        std::thread thr(parseDate, pname, branch);
+        threads.push(std::move(thr));
+        if  (threads.size() > threadsSize) {
+            while(threads.size() > 0){
+                threads.front().join();
+                threads.pop();
+            }
+            cout << "\033[31mЗавершил порцию потоков для parseDate"<< system_threads_count_insert_depr_data<<" \033[0m" <<endl;
+            system_threads_count_insert_depr_data++;
+        }
+    }
+    while (!threads.empty()) {
+        threads.front().join();
+        threads.pop();
+    }
+
     /*
     for (auto pname : pnames) {
         
