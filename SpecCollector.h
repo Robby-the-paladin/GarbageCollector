@@ -15,5 +15,5 @@ public:
 	std::vector<std::string> getBranchPackageNames(std::string branch);
 
 private:
-	Json::Value getSpecResponse(std::string branch, std::string name);
+	Api::response getSpecResponse(std::string branch, std::string name);
 };

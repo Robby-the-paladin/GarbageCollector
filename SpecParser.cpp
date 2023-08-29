@@ -193,10 +193,13 @@ std::set<std::string> SpecParser::getDeprecatedPackages_test(std::string specfil
 	if (resp != 0) {
         error++;
 		std::cout << "Error using rpm -bE:" << resp << std::endl;
+		return {};
+		
     }
     resp = system("cp ../../../home/builder/parsedspec.spec ./");
     if (resp != 0) {
 		std::cout << "Error using cp:" << resp << std::endl;
+		return {};
     }
 
 	std::ifstream inspec("parsedspec.spec");
