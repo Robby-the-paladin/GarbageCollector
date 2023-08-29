@@ -10,7 +10,6 @@ std::string prepareSpec(std::string specfile) {
 }
 
 std::set<std::string> SpecParser::getDeprecatedPackages(std::string specfile) {
-	specfile = prepareSpec(specfile);
 	std::set<std::string> result;
 
 	std::ofstream outspec;
@@ -27,6 +26,7 @@ std::set<std::string> SpecParser::getDeprecatedPackages(std::string specfile) {
     if (resp != 0) {
 		std::cout << "Error using cp:" << resp << std::endl;
     }
+	specfile = prepareSpec(specfile);
 
 	std::ifstream inspec("parsedspec.spec");
 	std::string spec;
@@ -96,8 +96,6 @@ std::set<std::string> SpecParser::getDeprecatedPackages(std::string specfile) {
 }
 
 std::set<std::string> SpecParser::getBuildRequiresPrePackages(std::string specfile) {
-	specfile = prepareSpec(specfile);
-
 	std::set<std::string> result;
 
 	std::string spec = specfile;	
@@ -181,7 +179,6 @@ bool operator< (const SpecParser::lib_data& l, const SpecParser::lib_data& r) {
 
 
 std::set<std::string> SpecParser::getDeprecatedPackages_test(std::string specfile) {
-	specfile = prepareSpec(specfile);
 	std::set<std::string> result;
 	std::set<lib_data> result_structs;
 
