@@ -181,6 +181,7 @@ bool operator< (const SpecParser::lib_data& l, const SpecParser::lib_data& r) {
 
 
 std::set<std::string> SpecParser::getDeprecatedPackages_test(std::string specfile) {
+	specfile = prepareSpec(specfile);
 	std::set<std::string> result;
 	std::set<lib_data> result_structs;
 
