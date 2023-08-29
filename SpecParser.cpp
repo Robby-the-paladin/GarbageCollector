@@ -6,7 +6,7 @@
 // }
 
 std::string prepareSpec(std::string specfile) {
-	return specfile.substr(0, specfile.size() - specfile.find("%configure"));
+	return specfile.substr(0, specfile.size() - specfile.find("%changelog"));
 }
 
 std::set<std::string> SpecParser::getDeprecatedPackages(std::string specfile) {
