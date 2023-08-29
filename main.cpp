@@ -53,7 +53,10 @@ void parseData(std::string pname, std::string branch) {
             //auto packages = p.getBuildRequiresPrePackages(spec);
 
     auto cur_error = p.error;
+
+    ph.ph_lock.lock();
     auto packages = p.getDeprecatedPackages_test(spec);
+    ph.ph_lock.unlock();
     
     auto test = p.strToStructSet_lib_data(packages);
 

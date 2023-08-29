@@ -8,11 +8,11 @@ static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* use
     return size * nmemb;
 }
 
-Json::Value SpecCollector::getSpecResponse(std::string branch, std::string name) {
+Api::response SpecCollector::getSpecResponse(std::string branch, std::string name) {
     Api a;
     std::string host = apiURL+"/api/package/specfile_by_name";
     std::string req = host + "?" + "branch=" + branch + "&" + "name=" + name;
-    auto root = a.getReadBuffer(req).root;
+    auto root = a.getReadBuffer(req);
 
     return root;
 }
@@ -32,14 +32,20 @@ std::vector<std::string> SpecCollector::getBranchPackageNames(std::string branch
 }
 
 std::string SpecCollector::getSpec(std::string branch, std::string name) {
-    auto root = getSpecResponse(branch, name);
-    std::string content = root["specfile_content"].asString();
+    auto resp = getSpecResponse(branch, name);
+    if (resp.http_code != 200) {
+        return "";
+    }
+    std::string content = resp.root["specfile_content"].asString();
     std::string result = base64_decode(content);
     return result;
 }
 
 std::string SpecCollector::getSpecDate(std::string branch, std::string name) {
-    auto root = getSpecResponse(branch, name);
-    std::string result = root["specfile_date"].asString();
+    auto resp = getSpecResponse(branch, name);
+    if (resp.http_code != 200) {
+        return "";
+    }
+    std::string result = resp.root["specfile_date"].asString();
     return result;
 }
