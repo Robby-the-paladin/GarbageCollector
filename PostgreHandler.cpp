@@ -82,7 +82,7 @@ std::set<std::string> PostgreHandler::getAllNames() {
 
 std::set<std::string> PostgreHandler::getNamesWithData() {
     pqxx::work W(connect);
-    pqxx::result R (W.exec("SELECT name FROM depr WHERE NOT (depr.data is null OR depr.data='{}')"));
+    pqxx::result R (W.exec("SELECT name FROM depr WHERE NOT (depr.data is null)"));
 
     std::set<std::string> data;
     for (pqxx::result::const_iterator it = R.begin(); it != R.end(); it++ ) {

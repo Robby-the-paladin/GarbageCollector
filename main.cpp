@@ -20,7 +20,7 @@ std::string postgreConnStr = "user=doadmin password=AVNS_xMD70wwF41Btbfo6iaz hos
 std::string apiURL = "http://64.226.73.174:8080";
 //не прокся (медленно)
 //std::string apiURL = "https://rdb.altlinux.org";
-int threadsSize = 60;
+int threadsSize = 100;
 
 std::set<std::string> errorPackages;
 
@@ -163,19 +163,21 @@ int main(int argc, char *argv[]) {
     if (maxThreads < threadsSize) {
         threadsSize = maxThreads;
     }
-    try {
-    // Connect to the database
-        pqxx::connection c(postgreConnStr);
-    } catch (const exception &e) {
-        cerr << e.what() << endl;
-    }
-    if (actionsMap.find("first_buld") != actionsMap.end()){
+     if (actionsMap.find("first_buld") != actionsMap.end()){
         string l;
         while (cin >> l) {
             cout << l;
             system(("apt-get install -y " + l).c_str());
         }
     }
+    try {
+        cout<<"connect to db";
+    // Connect to the database
+        pqxx::connection c(postgreConnStr);
+    } catch (const exception &e) {
+        cerr << e.what() << endl;
+    }
+   
     SpecCollector s;
     SpecParser p;
     PostgreHandler ph;
