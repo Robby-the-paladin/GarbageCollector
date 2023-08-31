@@ -126,16 +126,25 @@ std::vector<std::string> PostgreHandler::getCheckedPackages(std::vector<std::str
     for (auto name: names) {
         ph_lock.lock();
         pqxx::work W(connect);
-        pqxx::result R (W.exec("SELECT \"check\" FROM deprcheck WHERE name = '" + name + "'"));
+        std::string output;
+
+        for (char c : name) {
+            if (c == '\'') {
+                output += "''";  // Заменяем кавычку на две кавычки
+            } else {
+                output += c;     // Остальные символы оставляем без изменений
+            }
+        }
+        pqxx::result R (W.exec("SELECT \"check\" FROM deprcheck WHERE name = '" + output + "'"));
         if (R.begin() == R.end()) {
-            W.exec("INSERT INTO deprcheck VALUES ('"+ name + "', null)");
+            W.exec("INSERT INTO deprcheck VALUES ('"+ output + "', null)");
         }
         W.commit();
       //  ph_lock.unlock();
     
         pqxx::work Update(connect);
       //  pqxx::result R;
-        R = Update.exec("SELECT \"check\" FROM deprcheck WHERE name = '" + name + "'");
+        R = Update.exec("SELECT \"check\" FROM deprcheck WHERE name = '" + output + "'");
         Update.commit();
         ph_lock.unlock();
 
@@ -195,7 +204,16 @@ std::vector<std::string> PostgreHandler::getCheckedPackages(std::vector<std::str
 bool PostgreHandler::checkDeprDate(std::string pname, std::string branch) {
     ph_lock.lock();
     pqxx::work W(connect);
-    pqxx::result R (W.exec("SELECT builtime FROM deprcheck WHERE name = '" + pname + "'"));
+    std::string output;
+
+        for (char c : pname) {
+            if (c == '\'') {
+                output += "''";  // Заменяем кавычку на две кавычки
+            } else {
+                output += c;     // Остальные символы оставляем без изменений
+            }
+        }
+    pqxx::result R (W.exec("SELECT builtime FROM deprcheck WHERE name = '" + output + "'"));
     ph_lock.unlock();
     auto elem = (*R.begin())[0];
     Api api;
@@ -205,7 +223,7 @@ bool PostgreHandler::checkDeprDate(std::string pname, std::string branch) {
         time = result.value().first;
         ph_lock.lock();
         pqxx::work Up(connect);
-        Up.exec_params1("UPDATE deprcheck SET \"buildtime\" = $1 WHERE name = '" + pname + "'", result.value().first);
+        Up.exec_params1("UPDATE deprcheck SET \"buildtime\" = $1 WHERE name = '" + output + "'", result.value().first);
         ph_lock.unlock();
     } else {
         time = elem.as<int>();

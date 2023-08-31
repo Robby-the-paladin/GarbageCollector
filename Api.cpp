@@ -18,7 +18,7 @@ Api::response Api::getReadBuffer(std::string req) {
         //std::cout << req << "\n";
         curl_easy_setopt(curl, CURLOPT_URL, req.c_str());
         //таймаут для запроса (иначе треш)
-        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 100);
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 305);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
