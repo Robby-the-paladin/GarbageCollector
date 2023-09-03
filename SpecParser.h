@@ -4,6 +4,7 @@
 #include <iostream>
 #include <set>
 #include <fstream>
+#include <map>
 
 class SpecParser {
 public:
