@@ -39,10 +39,24 @@ bool PostgreHandler::addDeprecated(std::string name, std::string col, std::set<s
     pqxx::work W(connect);
     auto res = W.exec("SELECT *  FROM depr WHERE name = '" + name + "'");
     std::vector<std::string> vc(data.begin(), data.end());
-    if (res.begin() == res.end())
-        W.exec_prepared("insert_" + col, name, vc);
-    else
-        W.exec_prepared("update_" + col, name, vc);
+    std::vector<std::string> O;
+    if (res.begin() == res.end()) {
+        W.exec_params("INSERT INTO depr VALUES($1, $2, null)", name, O);
+    } else {
+        W.exec_params("UPDATE depr SET data = $1", O);
+    }
+
+    int i = 0;
+    for (auto elem: data) {
+        O.push_back(elem);
+        i++;
+        if (i >= 1000) {
+            W.exec_params("UPDATE depr SET data = ARRAY_CAT(data, $1)", O);
+            i = 0;
+            O = {};
+        }
+    }
+
     W.commit();
     
     return true;
@@ -109,10 +123,18 @@ bool PostgreHandler::replaceDeprecatedWith(std::string name, std::string col, st
     pqxx::work W(connect);
     auto res = W.exec("SELECT *  FROM depr WHERE name = '" + name + "'");
     std::vector<std::string> vc(data.begin(), data.end());
-    if (res.begin() == res.end())
-        W.exec_prepared("insert_" + col, name, vc);
-    else
-        W.exec_prepared("update_" + col, name, vc);
+    std::vector<std::string> O;
+
+    if (res.begin() == res.end()) {
+        W.exec_params("INSERT INTO depr VALUES($1, $2, null)", name, O);
+    } else {
+        W.exec_params("UPDATE depr SET data = $1", O);
+    }
+
+    for (auto elem: data) {
+        W.exec_params("UPDATE depr SET data = ARRAY_APPEND(data, $1)", elem);
+    }
+    
     W.commit();
     ph_lock.unlock();
     

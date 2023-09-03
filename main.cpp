@@ -10,12 +10,15 @@
 #include "SpecParser.h"
 #include "PostgreHandler.h"
 #include "Api.h"
+#include <rpm/header.h>
+#include "rpmDB_test.h"
 //#include <pqxx/pqxx>
 
 using namespace std;
 
 // А точно безоавсно хранить админский ключ в строке на гите, и так сойдет ...
-std::string postgreConnStr = "user=doadmin password=AVNS_xMD70wwF41Btbfo6iaz host=db-postgresql-fra1-79796-do-user-14432859-0.b.db.ondigitalocean.com port=25060 dbname=test target_session_attrs=read-write";
+//std::string postgreConnStr = "user=doadmin password=AVNS_xMD70wwF41Btbfo6iaz host=db-postgresql-fra1-79796-do-user-14432859-0.b.db.ondigitalocean.com port=25060 dbname=test target_session_attrs=read-write";
+std::string postgreConnStr = "user=edgar password=genius host=host.docker.internal port=5432 dbname=test target_session_attrs=read-write";
 //Прокся
 std::string apiURL = "http://64.226.73.174:8080";
 //не прокся (медленно)
@@ -149,6 +152,31 @@ set<std::string> getUnicalPackageNames(vector<std::string> fromApi, set<std::str
 
 
 int main(int argc, char *argv[]) {
+
+    rpmDB_test r;
+    std::map<std::string,std::set<std::string>> packages = r.test();
+    
+    PostgreHandler phh;
+    auto saves = ph.getNamesWithData();
+    int count = packages.size();
+    int index = 0;
+    //"zoneminder"
+    // std::cout << "----------------------------\n";
+    // phh.addDeprecated("zoneminder", "data", packages["zoneminder"]);
+    // std::cout << "----------------------------\n";
+    // return 0;
+    for(auto elem: packages) {
+        std::cout << elem.first << ": ";
+        if (saves.find(elem.first) == saves.end() && elem.first != "zoneminder") {
+            phh.addDeprecated(elem.first, "data", elem.second);
+            
+        } else {
+            std::cout << "SKIP: ";
+        }
+        std::cout << index++ << " / " << count << std::endl;
+    }
+    return 0;
+
     std::map<string, bool> actionsMap;
     for (int i = 1; i < argc; i++) {
         actionsMap[argv[i]] =true;
@@ -334,7 +362,8 @@ int main(int argc, char *argv[]) {
     
     //map<string, bool> checked_packages = {};
     // cout << "\nSearching deprecated packages\n";
-    // for (auto pname : pnames) {
+    // for (auto pname : pnames) {std::cout<< str_name << std::endl;
+                    // std::cout << str_format << std::endl;
     //     pname = ReplaceAll(pname, "+", "%2B");
         
     //     // if (!ph.isDeprecatedNull(pname)) {
