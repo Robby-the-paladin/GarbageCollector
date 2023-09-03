@@ -46,18 +46,23 @@ bool PostgreHandler::addDeprecated(std::string name, std::string col, std::set<s
         W.exec_params("UPDATE depr SET data = $1", O);
     }
 
+    W.commit();
+
     int i = 0;
     for (auto elem: data) {
         O.push_back(elem);
         i++;
         if (i >= 1000) {
-            W.exec_params("UPDATE depr SET data = ARRAY_CAT(data, $1)", O);
+            pqxx::work WW(connect);
+            WW.exec_params("UPDATE depr SET data = ARRAY_CAT(data, $1)", O);
             i = 0;
             O = {};
+            WW.commit();
         }
     }
-
-    W.commit();
+    pqxx::work WW(connect);
+    WW.exec_params("UPDATE depr SET data = ARRAY_CAT(data, $1)", O);
+    WW.commit();
     
     return true;
 }

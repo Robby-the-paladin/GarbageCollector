@@ -9,7 +9,6 @@
 // #include <rpm/dbindex.h>
 #include <unistd.h>
 #include <rpm/rpmdb.h>
-#include <rpmconstant/rpmconstant.h>
 
 class rpmDB_test {
     public:
