@@ -244,25 +244,26 @@ int main(int argc, char *argv[]) {
             threads.front().join();
             threads.pop();
         }
-    }
-
-    std::queue<std::thread> threads;
-    for (auto pname : save_names) {
-        std::thread thr(parseDate, pname, branch);
-        threads.push(std::move(thr));
-        if  (threads.size() > threadsSize) {
-            while(threads.size() > 0){
-                threads.front().join();
-                threads.pop();
+        //std::queue<std::thread> threads;
+        for (auto pname : save_names) {
+            std::thread thr(parseDate, pname, branch);
+            threads.push(std::move(thr));
+            if  (threads.size() > threadsSize) {
+                while(threads.size() > 0){
+                    threads.front().join();
+                    threads.pop();
+                }
+                cout << "\033[31mЗавершил порцию потоков для parseDate"<< system_threads_count_insert_depr_data<<" \033[0m" <<endl;
+                system_threads_count_insert_depr_data++;
             }
-            cout << "\033[31mЗавершил порцию потоков для parseDate"<< system_threads_count_insert_depr_data<<" \033[0m" <<endl;
-            system_threads_count_insert_depr_data++;
+        }
+        while (!threads.empty()) {
+            threads.front().join();
+            threads.pop();
         }
     }
-    while (!threads.empty()) {
-        threads.front().join();
-        threads.pop();
-    }
+
+    
 
     /*
     for (auto pname : pnames) {
