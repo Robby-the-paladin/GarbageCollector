@@ -153,30 +153,6 @@ set<std::string> getUnicalPackageNames(vector<std::string> fromApi, set<std::str
 
 int main(int argc, char *argv[]) {
 
-    rpmDB_test r;
-    std::map<std::string,std::set<std::string>> packages = r.test();
-    
-    PostgreHandler phh;
-    auto saves = ph.getNamesWithData();
-    int count = packages.size();
-    int index = 0;
-    //"zoneminder"
-    // std::cout << "----------------------------\n";
-    // phh.addDeprecated("zoneminder", "data", packages["zoneminder"]);
-    // std::cout << "----------------------------\n";
-    // return 0;
-    for(auto elem: packages) {
-        std::cout << elem.first << ": ";
-        if (saves.find(elem.first) == saves.end() && elem.first != "zoneminder") {
-            phh.addDeprecated(elem.first, "data", elem.second);
-            
-        } else {
-            std::cout << "SKIP: ";
-        }
-        std::cout << index++ << " / " << count << std::endl;
-    }
-    return 0;
-
     std::map<string, bool> actionsMap;
     for (int i = 1; i < argc; i++) {
         actionsMap[argv[i]] =true;
@@ -228,22 +204,22 @@ int main(int argc, char *argv[]) {
     // pnames = {"boost"};
     //pnames = {"libtolua++-lua5.1", "tintin++", "tolua++", "libvsqlite++"};
     if (actionsMap.find("insert_data") != actionsMap.end()){
-        std::queue<std::thread> threads;
-        for (auto pname : unicalPackages) {
-            std::thread thr(parseData, pname, branch);
-            threads.push(std::move(thr));
-            if  (threads.size() > threadsSize) {
-                while(threads.size() > 0) {
-                    threads.front().join();
-                    threads.pop();
-                }
-                cout << "\033[31mЗавершил порцию потоков для insert_data"<<system_threads_count_insert_data<< " \033[0m" <<endl;
-                system_threads_count_insert_data++;
+        rpmDB_test r;
+        std::map<std::string,std::set<std::string>> packages = r.test();
+        
+        PostgreHandler phh;
+        auto saves = ph.getNamesWithData();
+        int count = packages.size();
+        int index = 0;
+        for(auto elem: packages) {
+            std::cout << elem.first << ": ";
+            if (saves.find(elem.first) == saves.end() && elem.first != "zoneminder") {
+                phh.addDeprecated(elem.first, "data", elem.second);
+                
+            } else {
+                std::cout << "SKIP: ";
             }
-        }
-        while (!threads.empty()) {
-            threads.front().join();
-            threads.pop();
+            std::cout << index++ << " / " << count << std::endl;
         }
     }
 
