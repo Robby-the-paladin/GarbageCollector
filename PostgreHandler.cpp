@@ -156,7 +156,7 @@ std::vector<std::string> PostgreHandler::getCheckedPackages(std::vector<std::str
                     if (!((name[i] >= 'a' && name[i] <= 'z') ||
                         (name[i] >= 'A' && name[i] <= 'Z') ||
                         (name[i] >= '0' && name[i] <= '9') ||
-                         name[i] == '.' || name[i] == '_' || name[i] == '%')) {
+                         name[i] == '.' || name[i] == '_' || name[i] == '%' || name[i] == '-')) {
                             check_name = false;
                             break;
                         }
