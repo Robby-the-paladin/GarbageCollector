@@ -6,7 +6,7 @@ PostgreHandler::PostgreHandler(): connect(pqxx::connection(postgreConnStr)) {
    
     pqxx::work W(connect);
     W.exec("CREATE TABLE IF NOT EXISTS depr (name TEXT PRIMARY KEY, data TEXT[], depr_data TEXT[])");
-    W.exec("CREATE TABLE IF NOT EXISTS deprcheck (name TEXT PRIMARY KEY, \"check\" boolean, \"actual_package\" boolean,buildtime INTEGER)");
+    W.exec("CREATE TABLE IF NOT EXISTS deprcheck (name TEXT PRIMARY KEY, \"check\" boolean, \"actual_package\" boolean)");
     W.commit();
     connect.prepare("insert_data", "INSERT INTO depr VALUES ($1, $2, null)");
     connect.prepare("insert_depr_data", "INSERT INTO depr VALUES ($1, null, $2)");

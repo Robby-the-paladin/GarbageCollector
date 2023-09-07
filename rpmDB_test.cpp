@@ -26,7 +26,7 @@ std::map<std::string,std::set<std::string>> rpmDB_test::test() {
     words.insert("conflicts");
     for (auto& elem: words) {
         std::string format =  "[\\{%{" + elem + "},,%{" + elem.substr(0,elem.size()-1) + "version}," + elem + "\\} ]";
-        std::string name =  "%{name}";
+        std::string name =  "%{SOURCERPM}";
         int rc = 0;
         const char *pkglist;
         int ix = 2;
