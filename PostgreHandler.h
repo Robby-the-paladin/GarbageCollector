@@ -23,7 +23,7 @@ public:
 
     bool isDeprecatedNull(std::string name);
 
-    std::vector<std::string> getCheckedPackages(std::vector<std::string> names, std::string branch);
+    std::vector<std::string> getCheckedPackages(std::vector<std::string> names, std::string branch, std::set<std::string>& unic_list);
     bool setCheckedPackage(std::string name);
 
     std::set<std::string> getAllNames();

@@ -6,7 +6,7 @@ PostgreHandler::PostgreHandler(): connect(pqxx::connection(postgreConnStr)) {
    
     pqxx::work W(connect);
     W.exec("CREATE TABLE IF NOT EXISTS depr (name TEXT PRIMARY KEY, data TEXT[], depr_data TEXT[])");
-    W.exec("CREATE TABLE IF NOT EXISTS deprcheck (name TEXT PRIMARY KEY, \"check\" boolean, buildtime INTEGER)");
+    W.exec("CREATE TABLE IF NOT EXISTS deprcheck (name TEXT PRIMARY KEY, \"check\" boolean, \"actual_package\" boolean,buildtime INTEGER)");
     W.commit();
     connect.prepare("insert_data", "INSERT INTO depr VALUES ($1, $2, null)");
     connect.prepare("insert_depr_data", "INSERT INTO depr VALUES ($1, null, $2)");
@@ -120,7 +120,7 @@ bool PostgreHandler::replaceDeprecatedWith(std::string name, std::string col, st
 }
 
 
-std::vector<std::string> PostgreHandler::getCheckedPackages(std::vector<std::string> names, std::string branch) {
+std::vector<std::string> PostgreHandler::getCheckedPackages(std::vector<std::string> names, std::string branch, std::set<std::string>& unic_list) {
     Api a;
     std::vector<std::string> check, out_true, out_false;
     for (auto name: names) {
@@ -198,6 +198,18 @@ std::vector<std::string> PostgreHandler::getCheckedPackages(std::vector<std::str
         ph_lock.unlock();
     }
     
+    for(auto chk: chks) {
+        ph_lock.lock();
+        pqxx::work Up(connect);
+        if (unic_list.find(chk.name) == unic_list.end()) {
+            Up.exec("UPDATE deprcheck SET \"actual_package\" = false WHERE name = '" + chk.name + "'");
+        } else {
+            Up.exec("UPDATE deprcheck SET \"actual_package\" = true WHERE name = '" + chk.name + "'");
+        }
+        Up.commit();
+        ph_lock.unlock();
+    }
+
     return out_true;
 }
 

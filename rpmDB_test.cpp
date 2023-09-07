@@ -76,3 +76,36 @@ std::map<std::string,std::set<std::string>> rpmDB_test::test() {
     }
     return out;
 }
+
+std::set<std::string> rpmDB_test::get_unic_last_name() {
+    std::vector<std::string> branchs = {"4.0", "4.1", "p5", "p6", "p7"};
+    std::vector<std::string> lists = {"pkglist.classic", "pkglist.classic (1)"};
+    std::set<std::string> unic;
+    std::string name = "%{name}";
+    for (auto branch: branchs) {
+        for (auto list: lists) {
+            FD_t Fd = Fopen((branch + "/" + list).c_str(), "r.ufdio");
+            Header h;
+            while ((h = headerRead(Fd, HEADER_MAGIC_YES)) != NULL) {
+                const char *err = "unknown error";
+                char *str_name = headerFormat(h, name.c_str(), &err);
+                if (str_name == NULL) {
+                    fprintf(stderr, "%s: %s: %s:\n", list, err, str_name);
+                }
+                else {
+                    unic.insert(str_name);
+                    free(str_name);
+                }
+                headerFree(h);
+            }
+            Fclose(Fd);
+        }
+    }
+
+    auto actual = test();
+    for (auto elem: actual) {
+        unic.erase(elem.first);
+    }
+
+    return unic;
+}

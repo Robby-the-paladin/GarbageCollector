@@ -77,7 +77,7 @@ void parseData(std::string pname, std::string branch) {
     std::cout << '\n';
 }
 
-void deprCheck(std::string pname, std::string branch) {
+void deprCheck(std::string pname, std::string branch, std::set<std::string> unic_list) {
     std::cout << "\nSearching deprecated packages\n" << ph.test << " " << std::endl;
     ph.test = ph.test + 1;
     pname = ReplaceAll(pname, "+", "%2B");
@@ -111,7 +111,7 @@ void deprCheck(std::string pname, std::string branch) {
         index++;
     }
 
-    std::vector<std::string> can_delete = ph.getCheckedPackages(names, branch);
+    std::vector<std::string> can_delete = ph.getCheckedPackages(names, branch, unic_list);
     depr_data = std::set<std::string>(can_delete.begin(), can_delete.end());
     
     ph.ph_lock.lock();
@@ -223,13 +223,15 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    rpmDB_test r;
+    std::set<std::string> unic_list = r.get_unic_last_name();
 
     auto save_names = ph.getAllNames();
     save_names = ph.getNamesWithData();
     if (actionsMap.find("insert_depr_data") != actionsMap.end()){
         std::queue<std::thread> threads;
         for (auto pname : save_names) {
-            std::thread thr(deprCheck, pname, branch);
+            std::thread thr(deprCheck, pname, branch, unic_list);
             threads.push(std::move(thr));
             if  (threads.size() > threadsSize) {
                 while(threads.size() > 0){
