@@ -245,7 +245,7 @@ std::set<std::string> SpecParser::getDeprecatedPackages_test(std::string specfil
 }
 
 
-SpecParser::lib_data* SpecParser::strToStruct_lib_data(std::string data) {
+SpecParser::lib_data SpecParser::strToStruct_lib_data(std::string data) {
 	std::string info = "";
 	int index = 0;
 	std::string name, version, type, sign;
@@ -276,19 +276,23 @@ SpecParser::lib_data* SpecParser::strToStruct_lib_data(std::string data) {
 			info += elem;
 		}
 	}
-	type = info.substr(0, info.size()-2);
-	SpecParser::lib_data* s_data = new SpecParser::lib_data();
-	s_data->name = name;
-	s_data->sign = sign;
-	s_data->version = version;
-	s_data->type = type;
+	type = info.substr(0, info.size()-1);
+	SpecParser::lib_data s_data;
+	s_data.name = name;
+	s_data.sign = sign;
+	s_data.version = version;
+	s_data.type = type;
 	return s_data;
 }
 
 std::vector<SpecParser::lib_data> SpecParser::strToStructSet_lib_data(std::set<std::string> libs) {
 	std::vector<SpecParser::lib_data> out;
 	for(auto lib: libs) {
-		out.push_back(*strToStruct_lib_data(lib));
+		out.push_back(strToStruct_lib_data(lib));
 	}
 	return out;
+}
+
+std::string SpecParser::structTostr_lib_data(lib_data data) {
+	return "{" + data.name + "," + data.sign + "," + data.version + "," + data.type + "}";
 }

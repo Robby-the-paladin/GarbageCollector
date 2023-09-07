@@ -10,6 +10,7 @@
 // #include <rpm/dbindex.h>
 #include <unistd.h>
 #include <rpm/rpmdb.h>
+#include "SpecParser.h"
 
 class rpmDB_test {
     public:
