@@ -80,8 +80,14 @@ std::map<std::string,std::set<std::string>> rpmDB_test::test() {
                 }
                // std::cout << "-------------------------\n";
                 headerFree(h);
+                // if (out.size() > 400) {
+                //         break;
+                // }
             }
             Fclose(Fd);
+            // if (out.size() > 400) {
+            //     break;
+            // }
         }
     }
     return out;

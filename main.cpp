@@ -197,7 +197,7 @@ int main(int argc, char *argv[]) {
         int index = 0;
         for(auto elem: packages) {
             std::cout << elem.first << ": ";
-            if (saves.find(elem.first) == saves.end() && elem.first != "zoneminder") {
+            if (saves.find(elem.first) == saves.end()) {
                 phh.addDeprecated(elem.first, "data", elem.second);
                 
             } else {
@@ -217,13 +217,9 @@ int main(int argc, char *argv[]) {
         for (auto pname : save_names) {
             std::thread thr(deprCheck, pname, branch);
             threads.push(std::move(thr));
-            if  (threads.size() > threadsSize) {
-                while(threads.size() > 0){
-                    threads.front().join();
-                    threads.pop();
-                }
-                cout << "\033[31mЗавершил порцию потоков для insert_depr_data"<< system_threads_count_insert_depr_data<<" \033[0m" <<endl;
-                system_threads_count_insert_depr_data++;
+            while(threads.size() > threadsSize) {
+                threads.front().join();
+                threads.pop();
             }
         }
         while (!threads.empty()) {
