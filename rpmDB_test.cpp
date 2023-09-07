@@ -6,6 +6,7 @@ std::set<std::string> string_to_set(std::string in) {
     for(auto elem: in) {
         if(elem == ' '){
             out.insert(s);
+            s = "";
         } else {
             s += elem;
         }
@@ -29,9 +30,9 @@ std::map<std::string,std::set<std::string>> rpmDB_test::test() {
         int rc = 0;
         const char *pkglist;
         int ix = 2;
-        pkglist = "pkglist.classic_x86_64";
+        std::vector<char*> pkglists = {"pkglist.classic_x86_64", "pkglist.classic_noarch"};
 
-        while (pkglist != NULL) {
+        for (auto pkglist: pkglists) {
             FD_t Fd = Fopen(pkglist, "r.ufdio");
             if (Ferror(Fd)) {
                 fprintf(stderr, "%s: %s: %s\n", progname, pkglist, Fstrerror(Fd));
@@ -51,7 +52,6 @@ std::map<std::string,std::set<std::string>> rpmDB_test::test() {
                     fprintf(stderr, "%s: %s: %s: %s:\n", progname, pkglist, err, format.c_str());
                 }
                 else {
-                    
                     //fputs(str_format, stdout);
                     // std::cout<< str_name << std::endl;
                     // std::cout << str_format << std::endl;
@@ -60,8 +60,19 @@ std::map<std::string,std::set<std::string>> rpmDB_test::test() {
                         out[std::string(str_name)] = {};
                     }
 
-                    for (auto elem: string_to_set(str_format)) {
-                        out[std::string(str_name)].insert(elem);
+                    
+
+                    auto data_struct = SpecParser::strToStructSet_lib_data(string_to_set(str_format));
+                    std::set<std::string> lists;
+                    
+                    for (size_t i = 0; i < data_struct.size(); i++)
+                    {
+                        std::string version = data_struct[i].version;
+                        if (version.size() > 4 && version.substr(0,4) == "set:") {
+                            data_struct[i].version = "";
+                        }
+     
+                        out[std::string(str_name)].insert(SpecParser::structTostr_lib_data(data_struct[i]));
                     }
                     
                     free(str_format);
@@ -70,7 +81,6 @@ std::map<std::string,std::set<std::string>> rpmDB_test::test() {
                // std::cout << "-------------------------\n";
                 headerFree(h);
             }
-            pkglist = NULL;
             Fclose(Fd);
         }
     }
