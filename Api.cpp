@@ -58,6 +58,22 @@ std::vector<std::string> Api::getActivePackages() {
 }
 
 std::vector<Api::checked_package> Api::checkPackage(std::vector<std::string> packagesNames, std::string branch) {
+    // divide et impera
+    // Выборка по 10 пакетов, чтобы предотваратить слишком длинные запросы (хорошо бы вынести как регулируемый параметр)
+    if (packagesNames.size() > 10) {
+        std::vector<Api::checked_package> result;
+        for (int i = 0; i < packagesNames.size();) {
+            std::vector<std::string> pnames;
+            for (; i < std::max(packagesNames.size(), size_t(10)); i++) {
+                pnames.push_back(packagesNames[i]);
+            }
+            auto res = checkPackage(pnames, branch);
+            for (auto pack : res) {
+                result.push_back(pack);
+            }
+        }
+    }
+
     // TODO: если пакет с данным именем присутствует в Requires api то false иначе true
 
 
@@ -78,7 +94,7 @@ std::vector<Api::checked_package> Api::checkPackage(std::vector<std::string> pac
     if (oss.str() == "") {
         return out;
     }
-    std::string req = host + "packages=" + oss.str() + "&branch=" + branch + "&depth=3&dptype=both&finite_package=false&oneandhalf=false&use_last_tasks=false";
+    std::string req = host + "packages=" + oss.str() + "&branch=" + branch + "&depth=5&dptype=both&finite_package=false&oneandhalf=false&use_last_tasks=false";
 
     std::cout << packagesNames.size() << " Проверяются пакеты: " << req << " !!!!!!!!!!!!!!!"<< std::endl;
 
