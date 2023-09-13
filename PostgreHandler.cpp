@@ -5,7 +5,7 @@ extern std::string postgreConnStr;
 PostgreHandler::PostgreHandler(): connect(pqxx::connection(postgreConnStr)) {
    
     pqxx::work W(connect);
-    W.exec("CREATE TABLE IF NOT EXISTS depr (name TEXT PRIMARY KEY, data TEXT[], depr_data TEXT[])");
+    W.exec("CREATE TABLE IF NOT EXISTS depr (name TEXT PRIMARY KEY, data TEXT[], depr_data TEXT[], \"count\" INTEGER, \"actual_package\" boolean)");
     W.exec("CREATE TABLE IF NOT EXISTS deprcheck (name TEXT PRIMARY KEY, \"check\" boolean, \"actual_package\" boolean)");
     W.commit();
     connect.prepare("insert_data", "INSERT INTO depr VALUES ($1, $2, null)");
@@ -47,6 +47,14 @@ bool PostgreHandler::addDeprecated(std::string name, std::string col, std::set<s
     
     return true;
 }
+
+bool PostgreHandler::addCount(std::string name, int count) {
+    pqxx::work W(connect);
+    W.exec(("UPDATE depr SET \"count\" = " + std::to_string(count) + " WHERE name = '" + name + "'").c_str());
+    W.commit();
+    return true;
+}
+
 
 bool PostgreHandler::getDeprecated(std::string name, std::string col,  std::set<std::string>& data) {
     pqxx::work W(connect);
@@ -245,4 +253,11 @@ bool PostgreHandler::checkDeprDate(std::string pname, std::string branch) {
     if (five_years < std::chrono::duration_cast<std::chrono::seconds>(unix_timestamp - std::chrono::seconds(time)))
         return true;
     return false;
+}
+
+
+void PostgreHandler::remove_provides(std::string key, std::string remove_name) {
+    pqxx::work W(connect);
+    W.exec(("UPDATE depr SET \"depr_data\" =  array_remove(depr_data, \'" + remove_name + "\') WHERE name = '" + key + "'").c_str());
+    W.commit();
 }

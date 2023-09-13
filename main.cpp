@@ -17,8 +17,8 @@
 using namespace std;
 
 // А точно безоавсно хранить админский ключ в строке на гите, и так сойдет ...
-//std::string postgreConnStr = "user=doadmin password=AVNS_xMD70wwF41Btbfo6iaz host=db-postgresql-fra1-79796-do-user-14432859-0.b.db.ondigitalocean.com port=25060 dbname=test target_session_attrs=read-write";
-std::string postgreConnStr = "user=edgar password=genius host=host.docker.internal port=5432 dbname=test target_session_attrs=read-write";
+std::string postgreConnStr = "user=doadmin password=AVNS_xMD70wwF41Btbfo6iaz host=db-postgresql-fra1-79796-do-user-14432859-0.b.db.ondigitalocean.com port=25060 dbname=test target_session_attrs=read-write";
+//std::string postgreConnStr = "user=edgar password=genius host=host.docker.internal port=5432 dbname=test target_session_attrs=read-write";
 //Прокся
 std::string apiURL = "http://64.226.73.174:8080";
 //не прокся (медленно)
@@ -199,7 +199,7 @@ int main(int argc, char *argv[]) {
             std::cout << elem.first << ": ";
             if (saves.find(elem.first) == saves.end()) {
                 phh.addDeprecated(elem.first, "data", elem.second);
-                
+                phh.addCount(elem.first, elem.second.size());
             } else {
                 std::cout << "SKIP: ";
             }
@@ -227,6 +227,8 @@ int main(int argc, char *argv[]) {
             threads.pop();
         }
     }
+
+    r.remove_provides(ph);
 
     return 0;
 }

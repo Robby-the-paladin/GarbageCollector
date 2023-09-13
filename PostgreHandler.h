@@ -20,6 +20,7 @@ public:
     
     bool addDeprecated(std::string name, std::string col, std::set<std::string> data); 
     bool getDeprecated(std::string name, std::string col, std::set<std::string>& data);
+    bool addCount(std::string name, int count);
 
     bool isDeprecatedNull(std::string name);
 
@@ -31,6 +32,7 @@ public:
     bool replaceDeprecatedWith(std::string name, std::string col, std::set<std::string> data);
 
     bool checkDeprDate(std::string pname, std::string branch);
+    void remove_provides(std::string key, std::string remove_name);
 };
 
 

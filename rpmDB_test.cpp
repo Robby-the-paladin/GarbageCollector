@@ -125,3 +125,53 @@ std::set<std::string> rpmDB_test::get_unic_last_name() {
 
     return unic;
 }
+
+void rpmDB_test::remove_provides(PostgreHandler& ph) {
+    std::string name_source =  "%{SOURCERPM}";
+    std::string name = "%{name}";
+    int rc = 0;
+    const char *pkglist;
+    int ix = 2;
+    std::vector<char*> pkglists = {"pkglist.classic_x86_64", "pkglist.classic_noarch"};
+
+    for (auto pkglist: pkglists) {
+        FD_t Fd = Fopen(pkglist, "r.ufdio");
+        if (Ferror(Fd)) {
+            fprintf(stderr, " %s: %s\n", pkglist, Fstrerror(Fd));
+            rc = 1;
+            pkglist = NULL;
+            continue;
+        }
+        Header h;
+        /*HEADER_MAGIC_YES*/
+        while ((h = headerRead(Fd, HEADER_MAGIC_YES)) != NULL) {
+            const char *err = "unknown error";
+            char *str_name_source = headerFormat(h, name_source.c_str(), &err);
+            char *str_name = headerFormat(h, name.c_str(), &err);
+            if (str_name == NULL || str_name_source == NULL) {
+                rc = 1;
+                
+                fprintf(stderr, "%s: %s: %s:\n", pkglist, err, str_name_source);
+            }
+            else {
+                //fputs(str_format, stdout);
+                // std::cout<< str_name << std::endl;
+                // std::cout << str_format << std::endl;
+                std::cerr << "In: " << str_name_source << " Remove: " << str_name << std::endl;
+                ph.remove_provides(str_name_source, str_name);
+                
+                free(str_name_source);
+                free(str_name);
+            }
+            // std::cout << "-------------------------\n";
+            headerFree(h);
+            // if (out.size() > 400) {
+            //         break;
+            // }
+        }
+        Fclose(Fd);
+        // if (out.size() > 400) {
+        //     break;
+        // }
+    }
+}
