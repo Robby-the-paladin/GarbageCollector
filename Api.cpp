@@ -94,7 +94,7 @@ std::vector<Api::checked_package> Api::checkPackage(std::vector<std::string> pac
     if (oss.str() == "") {
         return out;
     }
-    std::string req = host + "packages=" + oss.str() + "&branch=" + branch + "&depth=5&dptype=both&finite_package=false&oneandhalf=false&use_last_tasks=false";
+    std::string req = host + "packages=" + oss.str() + "&branch=" + branch + "&depth=3&dptype=both&finite_package=false&oneandhalf=false&use_last_tasks=false";
 
     std::cout << packagesNames.size() << " Проверяются пакеты: " << req << " !!!!!!!!!!!!!!!"<< std::endl;
 
