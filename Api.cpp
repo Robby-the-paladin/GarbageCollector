@@ -72,6 +72,7 @@ std::vector<Api::checked_package> Api::checkPackage(std::vector<std::string> pac
                 result.push_back(pack);
             }
         }
+        return result;
     }
 
     // TODO: если пакет с данным именем присутствует в Requires api то false иначе true
