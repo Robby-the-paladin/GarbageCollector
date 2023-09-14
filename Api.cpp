@@ -64,7 +64,7 @@ std::vector<Api::checked_package> Api::checkPackage(std::vector<std::string> pac
         std::vector<Api::checked_package> result;
         for (int i = 0; i < packagesNames.size();) {
             std::vector<std::string> pnames;
-            for (; i < std::max(packagesNames.size(), size_t(10)); i++) {
+            for (; i < std::min(packagesNames.size(), i + size_t(10)); i++) {
                 pnames.push_back(packagesNames[i]);
             }
             auto res = checkPackage(pnames, branch);
