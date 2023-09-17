@@ -5,7 +5,7 @@ extern std::string postgreConnStr;
 PostgreHandler::PostgreHandler(): connect(pqxx::connection(postgreConnStr)) {
    
     pqxx::work W(connect);
-    W.exec("CREATE TABLE IF NOT EXISTS depr (name TEXT PRIMARY KEY, data TEXT[], depr_data TEXT[], \"count\" INTEGER, \"actual_package\" boolean)");
+    W.exec("CREATE TABLE IF NOT EXISTS depr (name TEXT PRIMARY KEY, data TEXT[], depr_data TEXT[], \"count\" INTEGER)");
     W.exec("CREATE TABLE IF NOT EXISTS deprcheck (name TEXT PRIMARY KEY, \"check\" boolean, \"actual_package\" boolean)");
     W.commit();
     connect.prepare("insert_data", "INSERT INTO depr VALUES ($1, $2, null)");
@@ -145,7 +145,7 @@ std::vector<std::string> PostgreHandler::getCheckedPackages(std::vector<std::str
         }
         pqxx::result R (W.exec("SELECT \"check\" FROM deprcheck WHERE name = '" + output + "'"));
         if (R.begin() == R.end()) {
-            W.exec("INSERT INTO deprcheck VALUES ('"+ output + "', null)");
+            W.exec("INSERT INTO deprcheck VALUES ('"+ output + "', null, null)");
         }
         W.commit();
       //  ph_lock.unlock();
