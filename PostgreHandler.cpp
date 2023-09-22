@@ -185,7 +185,7 @@ std::vector<std::string> PostgreHandler::getCheckedPackages(std::vector<std::str
     }
 
 
-    std::vector<Api::checked_package> chks = a.checkPackage(check, branch);
+    std::vector<Api::checked_package> chks = a.divide_et_impera(check, branch);
 
     for (auto chk: chks) {
         ph_lock.lock();

@@ -236,7 +236,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if (actionsMap.find("remove_provides") != actionsMap.end() || true){
+    if (actionsMap.find("remove_provides") != actionsMap.end()){
         cout << "REMOVE" << endl;
         r.remove_provides(ph);
     }

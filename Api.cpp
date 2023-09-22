@@ -57,47 +57,28 @@ std::vector<std::string> Api::getActivePackages() {
     return packagesets;
 }
 
-std::vector<Api::checked_package> Api::checkPackage(std::vector<std::string> packagesNames, std::string branch) {
-    // divide et impera
-    // Выборка по 10 пакетов, чтобы предотваратить слишком длинные запросы (хорошо бы вынести как регулируемый параметр)
-    if (packagesNames.size() > 10) {
-        std::vector<Api::checked_package> result;
-        for (int i = 0; i < packagesNames.size();) {
-            std::vector<std::string> pnames;
-            for (; i < std::min(packagesNames.size(), i + size_t(10)); i++) {
-                pnames.push_back(packagesNames[i]);
-            }
-            auto res = checkPackage(pnames, branch);
-            for (auto pack : res) {
-                result.push_back(pack);
-            }
-        }
-        return result;
-    }
-
-    // TODO: если пакет с данным именем присутствует в Requires api то false иначе true
-
-
-    // https://rdb.altlinux.org/api/package/what_depends_src?packages=python3-dev&branch=p10&depth=5&dptype=both&finite_package=false&oneandhalf=false&use_last_tasks=false
-
-    //std::vector<std::string> packagesets = getActivePackages();
+std::vector<Api::checked_package> Api::checkPackage(std::vector<std::string> pnames, std::string branch) {
     std::string host = apiURL+"/api/package/what_depends_src?";
-
-    std::ostringstream oss;
     std::vector<Api::checked_package> out;
-    if (!packagesNames.empty()) {
-        std::copy(packagesNames.begin(), packagesNames.end() - 1, std::ostream_iterator<std::string>(oss, ","));
-        oss << packagesNames.back();
-    } else {
+    std::string oss_test;
+    if (!pnames.empty()) {
+        for (int i = 0; i < pnames.size() - 1; i++) { 
+            oss_test += pnames[i] + ",";
+        }
+        oss_test += pnames[pnames.size() - 1];
+    } else {    
         return out;
     }
-   // std::cout << "Проверяются пакеты: " << oss.str() << " !!!!!!!!!!!!!!!"<< std::endl;
-    if (oss.str() == "") {
-        return out;
-    }
-    std::string req = host + "packages=" + oss.str() + "&branch=" + branch + "&depth=3&dptype=both&finite_package=false&oneandhalf=false&use_last_tasks=false";
 
-    std::cout << packagesNames.size() << " Проверяются пакеты: " << req << " !!!!!!!!!!!!!!!"<< std::endl;
+
+    
+   // std::cout << "Проверяются пакеты: " << oss.str() << " !!!!!!!!!!!!!!!"<< std::endl;
+    if (oss_test == "") {
+        return out;
+    }
+    std::string req = host + "packages=" + oss_test + "&branch=" + branch + "&depth=3&dptype=both&finite_package=false&oneandhalf=false&use_last_tasks=false";
+
+    std::cout << pnames.size() << " Проверяются пакеты: " << req << " !!!!!!!!!!!!!!!"<< std::endl;
 
     Api::response resp = getReadBuffer(req);
     long http_code = resp.http_code;
@@ -105,7 +86,7 @@ std::vector<Api::checked_package> Api::checkPackage(std::vector<std::string> pac
     
 
     if (http_code == 200) {
-        for(auto packageName: packagesNames) {
+        for(auto packageName: pnames) {
             bool can_delete = false;
             for (auto S: resp.root["dependencies"]) {
                 for (auto name: S["requires"]) {
@@ -133,9 +114,40 @@ std::vector<Api::checked_package> Api::checkPackage(std::vector<std::string> pac
 
         }
     } else {
-        std::cout << "Странный ответ от апи/прокси: " << http_code << " " << oss.str() << std::endl;
+        std::cout << "Странный ответ от апи/прокси: " << http_code << " " << oss_test << std::endl;
     }
     return out;
+}
+
+
+
+std::vector<Api::checked_package> Api::divide_et_impera(std::vector<std::string> packagesNames, std::string branch) {
+    // divide et impera
+    // Выборка по 10 пакетов, чтобы предотваратить слишком длинные запросы (хорошо бы вынести как регулируемый параметр)
+    std::cout << packagesNames.size() << "  " << "!!!!!!!!!!!!!!" << std::endl;
+    if (packagesNames.size() > 80) {
+        std::vector<Api::checked_package> result;
+        for (int i = 0; i < packagesNames.size();) {
+            std::vector<std::string> pnames;
+            auto index = std::min(packagesNames.size(), i + size_t(80));
+            for (; i < index; i++) {
+                pnames.push_back(packagesNames[i]);
+            }
+            std::cout << pnames.size() << std::endl;
+            auto res = checkPackage(pnames, branch);
+            for (auto pack : res) {
+               // std::cout << pack.name << " " << pack.http_code ;
+                result.push_back(pack);
+            }
+          //  std::cout << std::endl << std::endl;
+        }
+        return result;
+    }
+
+    // TODO: если пакет с данным именем присутствует в Requires api то false иначе true
+    // https://rdb.altlinux.org/api/package/what_depends_src?packages=python3-dev&branch=p10&depth=5&dptype=both&finite_package=false&oneandhalf=false&use_last_tasks=false
+
+    return checkPackage(packagesNames, branch);
 }
 
 std::optional<std::string> Api::getHash(std::string branch, std::string name){

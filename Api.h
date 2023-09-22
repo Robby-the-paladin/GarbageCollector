@@ -26,7 +26,7 @@ public:
 
 	Api() {};
 
-    std::vector<checked_package> checkPackage(std::vector<std::string> packagesNames, std::string branch); // проверяет, можно ли удалять пакет, возвращает true если можно
+    std::vector<checked_package> divide_et_impera(std::vector<std::string> packagesNames, std::string branch); // проверяет, можно ли удалять пакет, возвращает true если можно
     std::vector<std::string> getActivePackages(); // получает список активных веток
     response getReadBuffer(std::string req); // делает запрос по url и возвращает ответ в jsonформате
 
@@ -34,4 +34,5 @@ public:
     std::optional<std::pair<long long, std::string>> getDate(std::string branch, std::string name);
 
     std::vector<std::string> activePackages;
+    std::vector<checked_package> checkPackage(std::vector<std::string> packagesNames, std::string branch);
 };
