@@ -136,11 +136,18 @@ set<std::string> getUnicalPackageNames(vector<std::string> fromApi, set<std::str
 
 
 int main(int argc, char *argv[]) {
-
+    string branch = "sisyphus";
     std::map<string, bool> actionsMap;
     for (int i = 1; i < argc; i++) {
-        actionsMap[argv[i]] =true;
+        if (strcmp(argv[i], "-b") != 0) {
+            branch = argv[++i]
+        } else {
+            actionsMap[argv[i]] = true;
+        }
     }
+
+    cout << "Ветка проверки: " << branch << endl;
+
     if (argc == 1){
         cout<<"Передайте в командной строке что вы хотите сделать"<<endl;
         cout<<"first_buld, insert_data, insert_depr_data"<<endl;
@@ -174,7 +181,7 @@ int main(int argc, char *argv[]) {
     keywords.insert("Obsoletes:");
     keywords.insert("Provides:");
     //return 0;
-    string branch = "p10";
+    
     cout << "Branch: " << branch << endl;
     vector<string> pnames = s.getBranchPackageNames(branch);
     auto unicalPackages = getUnicalPackageNames(pnames,ph.getNamesWithData());
@@ -187,6 +194,7 @@ int main(int argc, char *argv[]) {
     // pnames = {"opennebula","fonts-bitmap-knm-new-fixed"};
     // pnames = {"boost"};
     //pnames = {"libtolua++-lua5.1", "tintin++", "tolua++", "libvsqlite++"};
+
     if (actionsMap.find("insert_data") != actionsMap.end()){
         rpmDB_test r;
         std::map<std::string,std::set<std::string>> packages = r.test();
