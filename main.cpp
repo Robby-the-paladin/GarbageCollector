@@ -140,7 +140,7 @@ int main(int argc, char *argv[]) {
     std::map<string, bool> actionsMap;
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-b") != 0) {
-            branch = argv[++i]
+            branch = argv[++i];
         } else {
             actionsMap[argv[i]] = true;
         }
