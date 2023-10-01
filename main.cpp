@@ -16,6 +16,8 @@
 
 using namespace std;
 
+int counter = 0;
+mutex cnt_mute;
 // А точно безоавсно хранить админский ключ в строке на гите, и так сойдет ...
 std::string postgreConnStr = "user=doadmin password=AVNS_xMD70wwF41Btbfo6iaz host=db-postgresql-fra1-79796-do-user-14432859-0.b.db.ondigitalocean.com port=25060 dbname=test target_session_attrs=read-write";
 //std::string postgreConnStr = "user=edgar password=genius host=host.docker.internal port=5432 dbname=test target_session_attrs=read-write";
@@ -80,6 +82,9 @@ void parseData(std::string pname, std::string branch) {
 }
 
 void deprCheck(std::string pname, std::string branch) {
+    cnt_mute.lock();
+    counter++;
+    cnt_mute.unlock();
     std::cout << "\nSearching deprecated packages\n" << ph.test << " " << std::endl;
     ph.test = ph.test + 1;
     pname = ReplaceAll(pname, "+", "%2B");
@@ -119,6 +124,10 @@ void deprCheck(std::string pname, std::string branch) {
     ph.ph_lock.lock();
     ph.addDeprecated(pname, "depr_data", depr_data);
     ph.ph_lock.unlock();
+
+    cnt_mute.lock();
+    counter--;
+    cnt_mute.unlock();
 
 }
 
@@ -217,23 +226,31 @@ int main(int argc, char *argv[]) {
 
     rpmDB_test r;
     unic_list = r.get_unic_last_name();
-
+    
     auto save_names = ph.getAllNames();
     save_names = ph.getNamesWithData();
     if (actionsMap.find("insert_depr_data") != actionsMap.end()){
         std::queue<std::thread> threads;
         for (auto pname : save_names) {
-            std::thread thr(deprCheck, pname, branch);
-            threads.push(std::move(thr));
-            while(threads.size() > threadsSize) {
-                threads.front().join();
-                threads.pop();
+            while (counter > threadsSize) {
+                sleep(1);
             }
+            std::thread thr(deprCheck, pname, branch);
+            // threads.push(std::move(thr));
+            // while(threads.size() > threadsSize) {
+            //     threads.front().join();
+            //     threads.pop();
+            // }
+            
+            thr.detach();
         }
-        while (!threads.empty()) {
-            threads.front().join();
-            threads.pop();
+        while (counter > 0) {
+                sleep(1);
         }
+        // while (!threads.empty()) {
+        //     threads.front().join();
+        //     threads.pop();
+        // }
     }
 
     if (actionsMap.find("remove_provides") != actionsMap.end()){
