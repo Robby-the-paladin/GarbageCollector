@@ -12,6 +12,7 @@
 #include "Api.h"
 #include <rpm/header.h>
 #include "rpmDB_test.h"
+#include "LegacyDependencyAnalyzer.h"
 //#include <pqxx/pqxx>
 
 using namespace std;
@@ -145,6 +146,14 @@ set<std::string> getUnicalPackageNames(vector<std::string> fromApi, set<std::str
 
 
 int main(int argc, char *argv[]) {
+
+
+    auto  L = LegacyDependencyAnalyzer();
+    L.analysingBranchPackages();
+    std::cout << L.packagesToAnalyse.size() << std::endl;
+    L.criteriaChecking();
+    return 0;
+    
     string branch = "sisyphus";
     std::map<string, bool> actionsMap;
     for (int i = 1; i < argc; i++) {

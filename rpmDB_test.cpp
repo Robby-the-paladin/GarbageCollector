@@ -1,6 +1,6 @@
 #include "rpmDB_test.h"
 
-std::set<std::string> string_to_set(std::string in) {
+std::set<std::string> string_to_set_test(std::string in) {
     std::set<std::string> out;
     std::string s;
     for(auto elem: in) {
@@ -56,7 +56,7 @@ std::map<std::string,std::set<std::string>> rpmDB_test::test() {
                         out[std::string(str_name)] = {};
                     }
 
-                    auto data_struct = SpecParser::strToStructSet_lib_data(string_to_set(str_format));
+                    auto data_struct = SpecParser::strToStructSet_lib_data(string_to_set_test(str_format));
                     std::set<std::string> lists;
                     
                     for (size_t i = 0; i < data_struct.size(); i++)

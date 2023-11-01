@@ -10,6 +10,7 @@
 #include <rpm/rpmlib.h>
 #include <rpm/header.h>
 #include <rpm/rpmdb.h>
+#include <curl/curl.h>
 
 // структура зависимость
 // dependencyName - название зависимости
@@ -36,7 +37,8 @@ class RpmHandler
 {
 public:
     // список classic файлов, описывающих актуальную ветку
-    std::vector<std::string> classicFilesNames = {"pkglist.classic.x86_64", "pkglist.classic.noarch"};
+    std::string static constNameClassic;
+    std::vector<std::string> static classicArches;
     
     RpmHandler(){};
 
@@ -47,14 +49,18 @@ public:
     std::vector<PackageDependencies> static getDependenciesForPackages(std::vector<std::string> packageList);
 
     // возвращает множество пакетов по названию классик файла
-    std::set<std::string> static getPackageFromClassicFileName(std::string fileName);
+    std::set<std::string> static getPackageFromClassicFileName(std::string folder, std::string branch, 
+                                                               std::string classicName, std::string arch);
 private:
     // возвращает файловый дескриптор
-    FD_t getCalssicFileDescriptor(std::string fileName);
+    FD_t static getCalssicFileDescriptor(std::string fileName);
 
     // из множества строк зависимостей возвращает список структур Dependecy 
-    std::vector<Dependency> setStrToStructsDependencies(std::set<std::string> stringDependencies);
+    std::vector<Dependency> static setStrToStructsDependencies(std::set<std::string> stringDependencies);
 
     // из строки парсит структуру Dependency
-    Dependency strToStructDependency(std::string data);
+    Dependency static strToStructDependency(std::string data);
+
+    // загружает pkglist для конкретного branch и ирхитектуры
+    void static downloadClassicFile(std::string branch, std::string arch, std::string path = "");
 };

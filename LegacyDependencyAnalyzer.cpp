@@ -1,7 +1,7 @@
 #include "LegacyDependencyAnalyzer.h"
 
 
-void LegacyDependencyAnalyzer::analysingBranchPackages(std::string branch = "sisyphus") {
+void LegacyDependencyAnalyzer::analysingBranchPackages(std::string branch) {
     packagesToAnalyse = RpmHandler::getAllPackagesName(branch);
 }
 
@@ -10,16 +10,19 @@ std::vector<PackageDependencies> LegacyDependencyAnalyzer::getAllDependencies()
     return RpmHandler::getDependenciesForPackages(packagesToAnalyse);
 }
 
-std::vector<std::string> LegacyDependencyAnalyzer::getOldPackagesNames()
+void LegacyDependencyAnalyzer::criteriaChecking()
+{
+    getOldPackagesNames();
+}
+
+std::set<std::string> LegacyDependencyAnalyzer::getOldPackagesNames()
 {   
     std::set<std::string> oldPackages;
     for (auto br: oldBranches)
     {
-        std::string path = folderClassicFiles + br + "/";
-        for(auto fileName: classicFilesNames) {
-            // path + fileName;
-            auto getPack = RpmHandler::getPackageFromClassicFileName(path + fileName);
-            oldBranches.insert(getPack.begin(), getPack.end());
+        for(auto arch: classicArches) {
+            auto getPack = RpmHandler::getPackageFromClassicFileName(folderClassicFiles, br, constNameClassic, arch);
+            oldPackages.insert(getPack.begin(), getPack.end());
         }
     }
 

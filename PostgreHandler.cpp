@@ -186,18 +186,18 @@ std::vector<std::string> PostgreHandler::getCheckedPackages(std::vector<std::str
 
 
     std::vector<Api::checked_package> chks = a.divide_et_impera(check, branch);
-    map<string, bool> check;
+    std::map<std::string, bool> check_t;
     for (auto chk: chks) {
         ph_lock.lock();
         pqxx::work Up(connect);
         if (chk.http_code == 200) {
-            check[chk.name] = false;
+            check_t[chk.name] = false;
             Up.exec("UPDATE deprcheck SET \"check\" = false WHERE name = '" + chk.name + "'");
            // Up.commit();
             //ph_lock.unlock();
             //return false;
         } else if   (chk.http_code == 404) {
-            check[chk.name] = true;
+            check_t[chk.name] = true;
             Up.exec("UPDATE deprcheck SET \"check\" = true WHERE name = '" + chk.name + "'");
           //  Up.commit();
           //  ph_lock.unlock();
@@ -211,7 +211,7 @@ std::vector<std::string> PostgreHandler::getCheckedPackages(std::vector<std::str
         ph_lock.lock();
         pqxx::work Up(connect);
         if (unic_list.find(chk.name) == unic_list.end()) {
-            if (check[chk.name])
+            if (check_t[chk.name])
                 out_true.push_back(chk.name);
             Up.exec("UPDATE deprcheck SET \"actual_package\" = false WHERE name = '" + chk.name + "'");
         } else {
@@ -258,11 +258,11 @@ bool PostgreHandler::checkDeprDate(std::string pname, std::string branch) {
     return false;
 }
 
-void PostgreHandler::remove_irrelevant_pkgs(std::string pkg_name) {
-    pqxx::work W(connect);
-    W.exec(("UPDATE depr SET \"depr_data\" =  array_remove(depr_data, \'" + pkg_name + "\')").c_str());
-    W.commit();
-}
+// void PostgreHandler::remove_irrelevant_pkgs(std::string pkg_name) {
+//     pqxx::work W(connect);
+//     W.exec(("UPDATE depr SET \"depr_data\" =  array_remove(depr_data, \'" + pkg_name + "\')").c_str());
+//     W.commit();
+// }
 
 void PostgreHandler::remove_provides(std::string key, std::string remove_name) {
     pqxx::work W(connect);

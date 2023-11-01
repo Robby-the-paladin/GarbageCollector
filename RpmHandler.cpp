@@ -1,30 +1,55 @@
 #include "RpmHandler.h"
 
+std::set<std::string> string_to_set(std::string in) {
+    std::set<std::string> out;
+    std::string s;
+    for(auto elem: in) {
+        if(elem == ' '){
+            out.insert(s);
+            s = "";
+        } else {
+            s += elem;
+        }
+    }
+    return out;
+}
+
+std::string RpmHandler::constNameClassic = "pkglist.classic.";
+std::vector<std::string> RpmHandler::classicArches = {"x86_64", "noarch"};
+
 std::vector<std::string> RpmHandler::getAllPackagesName(std::string branch)
 {   
     std::vector<std::string> out;
     std::string name =  "%{SOURCERPM}";
 
-    /*
-    надо скачать classic файлы для branch
-    и записать их имена в classicFilesNames
-    */
+ 
+    // зашрузка classic файлов для branch если файлы отсутствуют
+    for (auto arch: classicArches)
+    {
+        FD_t Fd = getCalssicFileDescriptor(constNameClassic + arch);
+        if (Ferror(Fd)) {
+            // загрузить новый pkglist для branch
+            downloadClassicFile(branch, arch);
+        }
+        Fclose(Fd);
+    }
+    
 
-    for (auto pkglist: classicFilesNames) {
+    for (auto arch: classicArches) {
+        std::string pkglist = constNameClassic + arch;
+        
         FD_t Fd = getCalssicFileDescriptor(pkglist);
         if (Ferror(Fd)) {
-            fprintf(stderr, "%s: %s: %s\n", progname, pkglist, Fstrerror(Fd));
-            rc = 1;
-            pkglist = NULL;
+            fprintf(stderr, "%s: %s: %s:\n", "ERROR",pkglist, Fstrerror(Fd));
             continue;
         }
 
         Header h;
         while ((h = headerRead(Fd, HEADER_MAGIC_YES)) != NULL) {
+            const char *err = "unknown error";
             char *str_name = headerFormat(h, name.c_str(), &err);
             if (str_name == NULL) {
-                rc = 1;
-                fprintf(stderr, "%s: %s: %s: %s:\n", progname, pkglist, err, format.c_str());
+                fprintf(stderr, "%s: %s:\n", pkglist, err);
             }
             else {
                 out.push_back(std::string(str_name));
@@ -47,7 +72,7 @@ std::vector<PackageDependencies> RpmHandler::getDependenciesForPackages(std::vec
 
     for (auto name: packageList)
     {
-        packagesDependencies[name] = PackageDependencies{packagaName: name};
+        packagesDependencies[name] = PackageDependencies{packageName: name};
     }
     
     const char *progname = "";
@@ -58,12 +83,12 @@ std::vector<PackageDependencies> RpmHandler::getDependenciesForPackages(std::vec
     for (auto& elem: words) {
         std::string format =  "[\\{%{" + elem + "},,%{" + elem.substr(0,elem.size()-1) + "version}," + elem + "\\} ]";
         std::string name =  "%{SOURCERPM}";
-        std::vector<char*> pkglists = {"pkglist.classic_x86_64", "pkglist.classic_noarch"};
-        for (auto pkglist: pkglists) {
+        std::vector<char*> pkglists = {"pkglist.classic.x86_64", "pkglist.classic.noarch"};
+        for (auto arch: classicArches) {
+            auto pkglist = constNameClassic + arch;
             FD_t Fd = getCalssicFileDescriptor(pkglist);
             if (Ferror(Fd)) {
                 fprintf(stderr, "%s: %s: %s\n", progname, pkglist, Fstrerror(Fd));
-                pkglist = NULL;
                 continue;
             }
             Header h;
@@ -84,7 +109,7 @@ std::vector<PackageDependencies> RpmHandler::getDependenciesForPackages(std::vec
                             data_struct[i].version = "";
                         }
 
-                        packagesDependencies[std::string(str_name)].dependencies.push_back(data_struct);                     
+                        packagesDependencies[std::string(str_name)].dependencies.push_back(data_struct[i]);                     
                     }
 
                     
@@ -107,24 +132,31 @@ std::vector<PackageDependencies> RpmHandler::getDependenciesForPackages(std::vec
     return out;
 }
 
-std::set<std::string> RpmHandler::getPackageFromClassicFileName(std::string fileName)
+std::set<std::string> RpmHandler::getPackageFromClassicFileName(std::string folder, std::string branch, 
+                                                               std::string classicName, std::string arch)
 {   
-    std::vector<std::set> out;
+    std::set<std::string> out;
     std::string name =  "%{SOURCERPM}";
+
+    std::string fileName = folder + "/" + branch + "/" + classicName + arch;
     FD_t Fd = getCalssicFileDescriptor(fileName);
     if (Ferror(Fd)) {
-        fprintf(stderr, "%s: %s: %s\n", progname, pkglist, Fstrerror(Fd));
-        rc = 1;
-        pkglist = NULL;
-        continue;
+        downloadClassicFile(branch, arch, folder);
+    }
+    Fclose(Fd);
+
+    Fd = getCalssicFileDescriptor(fileName);
+    if (Ferror(Fd)) {
+        fprintf(stderr, "%s: %s\n", fileName, Fstrerror(Fd));
+        return {};
     }
 
     Header h;
     while ((h = headerRead(Fd, HEADER_MAGIC_YES)) != NULL) {
+        const char *err = "unknown error";
         char *str_name = headerFormat(h, name.c_str(), &err);
         if (str_name == NULL) {
-            rc = 1;
-            fprintf(stderr, "%s: %s: %s: %s:\n", progname, pkglist, err, format.c_str());
+            fprintf(stderr, "%s: %s:\n", fileName, err);
         }
         else {
             out.insert(std::string(str_name));
@@ -138,24 +170,12 @@ std::set<std::string> RpmHandler::getPackageFromClassicFileName(std::string file
     return out;
 }
 
-std::set<std::string> string_to_set(std::string in) {
-    std::set<std::string> out;
-    std::string s;
-    for(auto elem: in) {
-        if(elem == ' '){
-            out.insert(s);
-            s = "";
-        } else {
-            s += elem;
-        }
-    }
-    return out;
-}
+
 
 FD_t RpmHandler::getCalssicFileDescriptor(std::string fileName)
 {   
-    FD_t Fd = Fopen(pkglist, "r.ufdio");
-    return FD_t();
+    FD_t Fd = Fopen(("./" + fileName).c_str(), "r.ufdio");
+    return Fd;
 }
 
 
@@ -205,4 +225,86 @@ Dependency RpmHandler::strToStructDependency(std::string data) {
 	s_data.version = version;
 	s_data.type = type;
 	return s_data;
+}
+
+void RpmHandler::downloadClassicFile(std::string branch, std::string arch, std::string path)
+{
+    CURL* curl;
+    CURLcode res;
+
+    // Установка URL FTP сервера и пути к файлу
+    std::string url = "http://ftp.altlinux.org/pub/distributions/ALTLinux/" + branch + "/" + arch + "/base/pkglist.classic.xz";
+    std::string archiveFile = "pkglist.classic.xz";
+
+    // Инициализация библиотеки libcurl
+    curl_global_init(CURL_GLOBAL_DEFAULT);
+
+    curl = curl_easy_init();
+    if (curl) {
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+
+        // Указание функции обратного вызова для записи данных в локальный файл
+        FILE* fp = fopen(archiveFile.c_str(), "wb");
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
+
+        // Выполнение операции загрузки
+        res = curl_easy_perform(curl);
+
+        if (res != CURLE_OK) {
+            std::cerr << "Ошибка при загрузке файла: " << curl_easy_strerror(res) << std::endl;
+        }
+        else {
+            std::cout << "Файл успешно загружен как " << archiveFile << std::endl;
+        }
+
+        // Закрытие файла и освобождение ресурсов
+        fclose(fp);
+        curl_easy_cleanup(curl);
+    }
+
+    // Освобождение ресурсов libcurl
+    curl_global_cleanup();
+
+    auto resp = system((std::string("xz -d ") + "./" + "pkglist.classic.xz").c_str());
+
+    if (resp != 0) {
+        url = "http://ftp.altlinux.org/pub/distributions/ALTLinux/" + branch + "/branch/" + arch + "/base/pkglist.classic.xz";
+         // Инициализация библиотеки libcurl
+        curl_global_init(CURL_GLOBAL_DEFAULT);
+
+        curl = curl_easy_init();
+        if (curl) {
+            curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+
+            // Указание функции обратного вызова для записи данных в локальный файл
+            FILE* fp = fopen(archiveFile.c_str(), "wb");
+            curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
+
+            // Выполнение операции загрузки
+            res = curl_easy_perform(curl);
+
+            if (res != CURLE_OK) {
+                std::cerr << "Ошибка при загрузке файла: " << curl_easy_strerror(res) << std::endl;
+            }
+            else {
+                std::cout << "Файл успешно загружен как " << archiveFile << std::endl;
+            }
+
+            // Закрытие файла и освобождение ресурсов
+            fclose(fp);
+            curl_easy_cleanup(curl);
+        }
+
+        // Освобождение ресурсов libcurl
+        curl_global_cleanup();
+        system((std::string("xz -d ") + "./" + "pkglist.classic.xz").c_str());
+    }
+
+    if (path == "") {
+        resp = system((std::string("mv ./pkglist.classic ") + "pkglist.classic."+arch).c_str());
+    } else {
+        resp = system(("mkdir -p " + path + "/" + branch).c_str());
+        resp = system((std::string("mv ./pkglist.classic ") + "./" + path + "/" + branch + "/pkglist.classic." + arch).c_str());
+    }
+    
 }

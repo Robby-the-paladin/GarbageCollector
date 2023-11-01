@@ -30,8 +30,9 @@ class LegacyDependencyAnalyzer {
         std::vector<std::string> oldBranches = {"4.0", "4.1", "p5", "p6", "p7", "p8"};
 
         // статичная часть названия классик файла pkglist.classic(архитектура x86_64)  
-        const std::string folderClassicFiles = "./oldBranches/";
-        std::vector<std::string> classicFilesNames = {"pkglist.classic.x86_64", "pkglist.classic.noarch"};
+        const std::string folderClassicFiles = "oldBranches";
+        std::string constNameClassic = "pkglist.classic."; 
+        std::vector<std::string> classicArches = {"x86_64", "noarch"};
 
         // список пакетов для анализа
         std::vector<std::string> packagesToAnalyse;
@@ -39,7 +40,7 @@ class LegacyDependencyAnalyzer {
         LegacyDependencyAnalyzer(){};
 
         // устанавливает список пакетов для анализа из ветки. По умолчанию sisyphus
-        void analysingBranchPackages(std::string branch = "sisyphus");
+        void analysingBranchPackages(std::string branch = "Sisyphus");
 
         // возвращает список всех зависимостей для packagesToAnalyse
         std::vector<PackageDependencies> getAllDependencies();
