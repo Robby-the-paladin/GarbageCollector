@@ -52,15 +52,9 @@ std::map<std::string,std::set<std::string>> rpmDB_test::test() {
                     fprintf(stderr, "%s: %s: %s: %s:\n", progname, pkglist, err, format.c_str());
                 }
                 else {
-                    //fputs(str_format, stdout);
-                    // std::cout<< str_name << std::endl;
-                    // std::cout << str_format << std::endl;
-                    
                     if (out[std::string(str_name)].empty()) {
                         out[std::string(str_name)] = {};
                     }
-
-                    
 
                     auto data_struct = SpecParser::strToStructSet_lib_data(string_to_set(str_format));
                     std::set<std::string> lists;
@@ -74,20 +68,16 @@ std::map<std::string,std::set<std::string>> rpmDB_test::test() {
      
                         out[std::string(str_name)].insert(SpecParser::structTostr_lib_data(data_struct[i]));
                     }
+
                     
                     free(str_format);
                     free(str_name);
                 }
-               // std::cout << "-------------------------\n";
+
                 headerFree(h);
-                // if (out.size() > 400) {
-                //         break;
-                // }
             }
+            
             Fclose(Fd);
-            // if (out.size() > 400) {
-            //     break;
-            // }
         }
     }
     return out;
