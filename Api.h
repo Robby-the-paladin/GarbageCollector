@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <set>
 #include <iterator>
 #include <sstream>
 #include <curl/curl.h>
@@ -42,7 +43,10 @@ public:
     std::vector<checked_package> static divide_et_impera(std::vector<std::string> packagesNames, std::string branch);
     
     // получает список активных веток
-    std::vector<std::string> getActivePackages(); 
+    std::vector<std::string> getActiveBranches(); 
+
+    // получение пакетов из ветки
+    std::set<std::string> static getBranchPackageNames(std::string branch);
 
     // делает запрос по url и возвращает ответ в jsonформате
     response static getReadBuffer(std::string req); 

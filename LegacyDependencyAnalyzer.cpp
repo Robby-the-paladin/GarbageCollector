@@ -1,8 +1,8 @@
 #include "LegacyDependencyAnalyzer.h"
 
 
-void LegacyDependencyAnalyzer::analysingBranchPackages(std::string branch) {
-    packagesToAnalyse = RpmHandler::getAllPackagesName(branch);
+void LegacyDependencyAnalyzer::analysingBranchPackages(std::set<std::string> packNames, std::string branch) {
+    packagesToAnalyse = RpmHandler::getAllPackagesName(branch, packNames);
 }
 
 std::vector<PackageDependencies> LegacyDependencyAnalyzer::getAllDependencies()
@@ -39,12 +39,15 @@ std::map<std::string,std::vector<Dependency>> LegacyDependencyAnalyzer::criteria
         std::transform(lb.begin(), lb.end(), lb.begin(), ::tolower);
         auto depSrc = isAnythingDependsSrc(dependencyPacksNames, lb);
 
+        std::cout <<  pack.dependencies.size() << std::endl;
         for (auto oldPack: pack.dependencies) {
             bool checkOld = checkOldDeps[oldPack.dependencyName]; // true если старый, иначе false
             bool checkDepSrc = depSrc[oldPack.dependencyName]; // true если есть зависимост, иначе false
 
+            std::cout << "Is old? " << checkOld << " Is depend..? " << checkDepSrc << std::endl; 
             if (checkOld && !checkDepSrc) {
                 oldDepInPacks[pack.packageName].push_back(oldPack);
+                std::cout << pack.packageName << " delete => " << oldPack.dependencyName << " " << oldPack.type << std::endl;
             }
         }
     }
@@ -63,7 +66,7 @@ std::set<std::string> LegacyDependencyAnalyzer::getOldPackagesNames()
     }
 
     for (auto name: packagesToAnalyse) {
-        oldPackages.erase(name);
+        oldPackages.erase(name.first);
     }
 
     oldPackagesNames = oldPackages;

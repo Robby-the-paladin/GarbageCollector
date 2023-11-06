@@ -61,7 +61,7 @@ Api::response Api::getReadBuffer(std::string req) {
 
 /// @brief 
 /// @return 
-std::vector<std::string> Api::getActivePackages() {
+std::vector<std::string> Api::getActiveBranches() {
     //std::string req = "https://rdb.altlinux.org/api/packageset/active_packagesets";
     std::string req = apiURL+"/api/packageset/active_packagesets";
     Json::Value root = getReadBuffer(req).root;
@@ -73,6 +73,18 @@ std::vector<std::string> Api::getActivePackages() {
         packagesets.push_back(branch.asString());
     }
     return packagesets;
+}
+
+std::set<std::string> Api::getBranchPackageNames(std::string branch) {
+    //std::string req = "https://rdb.altlinux.org/api/packageset/active_packagesets";
+    std::string host = apiURL+"/api/export/sitemap_packages/";
+    std::string req = host + branch;
+    std::set<std::string> result;
+    auto root = getReadBuffer(req).root;
+    for (auto pack : root["packages"]) {
+        result.insert(pack["name"].asString());
+    }
+    return result;
 }
 
 std::vector<Api::checked_package> Api::checkPackage(std::vector<std::string> pnames, std::string branch) {

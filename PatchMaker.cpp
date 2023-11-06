@@ -85,6 +85,8 @@ void PatchMaker::makePatch(std::string patch_destination) {
                 std::cout << "Error while making patch for " << packagesToPatch[i] << ": " << resp << std::endl;
                 continue;
             }
+        } else {
+            std::cout << "Patch not needed" << std::endl;
         }
 	}
 }

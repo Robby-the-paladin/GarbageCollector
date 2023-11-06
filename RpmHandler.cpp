@@ -14,15 +14,25 @@ std::set<std::string> string_to_set(std::string in) {
     return out;
 }
 
+std::string ReplaceAll(std::string str, const std::string& from, const std::string& to) {
+    size_t start_pos = 0;
+    while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+        str.replace(start_pos, from.length(), to);
+        start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
+    }
+    return str;
+}
+
 std::string RpmHandler::constNameClassic = "pkglist.classic.";
 std::vector<std::string> RpmHandler::classicArches = {"x86_64", "noarch"};
 
-std::vector<std::string> RpmHandler::getAllPackagesName(std::string branch)
+std::map<std::string, std::string> RpmHandler::getAllPackagesName(std::string branch, std::set<std::string> packNames)
 {   
+    std::map<std::string, std::string> srcNameToPackName; // ставит в соответствии имени .src.rpm нормальное имя пакета 
     std::vector<std::string> out;
-    std::string name =  "%{SOURCERPM}";
-
- 
+    std::string name =  "%{NAME}";
+    std::string src_name = "%{SOURCERPM}";
+    
     // зашрузка classic файлов для branch если файлы отсутствуют
     for (auto arch: classicArches)
     {
@@ -48,12 +58,19 @@ std::vector<std::string> RpmHandler::getAllPackagesName(std::string branch)
         while ((h = headerRead(Fd, HEADER_MAGIC_YES)) != NULL) {
             const char *err = "unknown error";
             char *str_name = headerFormat(h, name.c_str(), &err);
+            char *src_str_name = headerFormat(h, src_name.c_str(), &err);
             if (str_name == NULL) {
                 fprintf(stderr, "%s: %s:\n", pkglist, err);
             }
             else {
-                out.push_back(std::string(str_name));
+                auto name = ReplaceAll(std::string(str_name), "+", "%2B");
+                if (packNames.find(name) != packNames.end()){
+                    srcNameToPackName[src_str_name] = name;
+                }
+
+                out.push_back(ReplaceAll(std::string(str_name), "+", "%2B"));
                 free(str_name);
+                free(src_str_name);
             }
 
             headerFree(h);
@@ -62,17 +79,17 @@ std::vector<std::string> RpmHandler::getAllPackagesName(std::string branch)
         Fclose(Fd);
     }
 
-    return out;
+    return srcNameToPackName;
 }
 
-std::vector<PackageDependencies> RpmHandler::getDependenciesForPackages(std::vector<std::string> packageList)
+std::vector<PackageDependencies> RpmHandler::getDependenciesForPackages(std::map<std::string, std::string> packageList)
 {   
     // словарь [имя пакета, структура PackageDependencies те его зависимости в спек файле]
     std::map<std::string, PackageDependencies> packagesDependencies;
 
     for (auto name: packageList)
-    {
-        packagesDependencies[name] = PackageDependencies{packageName: name};
+    {   
+        packagesDependencies[std::string(name.first)] = PackageDependencies{packageName: name.second};
     }
     
     const char *progname = "";
@@ -110,9 +127,12 @@ std::vector<PackageDependencies> RpmHandler::getDependenciesForPackages(std::vec
                         }
 
                         if (packagesDependencies.find(std::string(str_name)) != packagesDependencies.end()) { 
+                            
                             packagesDependencies[std::string(str_name)].dependencies.push_back(data_struct[i]);  
-                            break;
-                        }                   
+                            // break;
+                        }
+                        
+
                     }
 
                     
@@ -139,7 +159,7 @@ std::set<std::string> RpmHandler::getPackageFromClassicFileName(std::string fold
                                                                std::string classicName, std::string arch)
 {   
     std::set<std::string> out;
-    std::string name =  "%{SOURCERPM}";
+    std::string name =  "%{NAME}";
 
     std::string fileName = folder + "/" + branch + "/" + classicName + arch;
     FD_t Fd = getCalssicFileDescriptor(fileName);
@@ -162,7 +182,7 @@ std::set<std::string> RpmHandler::getPackageFromClassicFileName(std::string fold
             fprintf(stderr, "%s: %s:\n", fileName, err);
         }
         else {
-            out.insert(std::string(str_name));
+            out.insert(ReplaceAll(std::string(str_name), "+", "%2B"));
             free(str_name);
         }
 
@@ -223,7 +243,7 @@ Dependency RpmHandler::strToStructDependency(std::string data) {
 	}
 	type = info.substr(0, info.size()-1);
     Dependency s_data;
-	s_data.dependencyName = name;
+	s_data.dependencyName = ReplaceAll(name, "+", "%2B");
 	s_data.sign = sign;
 	s_data.version = version;
 	s_data.type = type;

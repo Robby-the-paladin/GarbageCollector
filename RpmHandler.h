@@ -35,7 +35,7 @@ struct PackageDependencies
 {
     // имя пакета
     std::string packageName;
-    // набор зависимостей в его спек файде
+    // набор зависимостей в его спек файле
     std::vector<Dependency> dependencies;
 };
 
@@ -49,10 +49,10 @@ public:
     RpmHandler(){};
 
     // возвращает список всех пакетов в branch
-    std::vector<std::string> static getAllPackagesName(std::string branch);
+    std::map<std::string, std::string> static getAllPackagesName(std::string branch, std::set<std::string> packNames);
 
     // возвращает набор зависимостей для списка пакетов
-    std::vector<PackageDependencies> static getDependenciesForPackages(std::vector<std::string> packageList);
+    std::vector<PackageDependencies> static getDependenciesForPackages(std::map<std::string, std::string> packageList);
 
     // возвращает множество пакетов по названию классик файла
     std::set<std::string> static getPackageFromClassicFileName(std::string folder, std::string branch, 

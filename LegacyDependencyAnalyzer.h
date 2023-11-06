@@ -36,12 +36,12 @@ class LegacyDependencyAnalyzer {
         std::vector<std::string> classicArches = {"x86_64", "noarch"};
 
         // список пакетов для анализа
-        std::vector<std::string> packagesToAnalyse;
+        std::map<std::string, std::string> packagesToAnalyse;
 
         LegacyDependencyAnalyzer(){};
 
         // устанавливает список пакетов для анализа из ветки. По умолчанию sisyphus
-        void analysingBranchPackages(std::string branch = "Sisyphus");
+        void analysingBranchPackages(std::set<std::string> packNames, std::string branch = "Sisyphus");
 
         // возвращает список всех зависимостей для packagesToAnalyse
         std::vector<PackageDependencies> getAllDependencies();
