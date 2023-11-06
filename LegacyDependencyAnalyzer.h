@@ -9,6 +9,7 @@
 #include <thread>
 #include <mutex>
 #include "RpmHandler.h"
+#include "Api.h"
 
 
 
@@ -59,12 +60,12 @@ class LegacyDependencyAnalyzer {
 
         // проверка на то что в актуальной ветке нет пакетов, которые зависят от исследуемого
         // true если есть зависимость, false - иначе
-        bool isAnythingDependsSrc(std::string packageName);
+        bool isAnythingDependsSrc(std::string packageName, std::string branch);
 
         // проверка на то что в актуальной ветке нет пакетов, которые зависят от исследуемых и возвращает 
         // ответ для каждого пакета. 
         // true если есть зависимость, false - иначе
-        std::map<std::string, bool> isAnythingDependsSrc(std::vector<std::string> packagesNames);
+        std::map<std::string, bool> isAnythingDependsSrc(std::vector<std::string> packagesNames, std::string branch);
 
         // проверка на то что пакет есть в старых ветках(oldBranches) и отсутствует в актуальной ветке. По умолчанию sisyphus
         // true если пакет есть в старых ветках и отсутствует в актуальной, иначе - false
