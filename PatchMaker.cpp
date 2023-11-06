@@ -76,10 +76,20 @@ void PatchMaker::makePatch(std::string patch_destination) {
 
         std::ofstream patched;
         patched.open("PatchedSpecfile.spec");
+
+        // ИГНОРИРУЕМ ВЕРСИИ ДО ЛУЧШИХ ВРЕМЕН!!!!
+        for (int j = 0; j < dependenciesToDelete[packagesToPatch[i]].size(); j++) {
+             dependenciesToDelete[packagesToPatch[i]][j].version = "";
+        }
+        // 
+
         std::string patched_str = generatePatch(specs[packagesToPatch[i]], dependenciesToDelete[packagesToPatch[i]]);
         patched << patched_str;
 
         if (patched_str != specs[packagesToPatch[i]]) {
+            spec.close();
+            patched.close();
+            std::cout << "diff -Naru Specfile.spec PatchedSpecfile.spec > " + patch_destination + packagesToPatch[i] + ".patch" << std::endl;
             int resp = system(("diff -Naru Specfile.spec PatchedSpecfile.spec > " + patch_destination + packagesToPatch[i] + ".patch").c_str());
             if (resp != 0) {
                 std::cout << "Error while making patch for " << packagesToPatch[i] << ": " << resp << std::endl;

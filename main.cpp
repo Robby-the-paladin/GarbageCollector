@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
     P.packagesToPatch = packages;
     P.dependenciesToDelete = L.criteriaChecking();
     P.loadSpecs(PatchMaker::specLoader::apiLoader);
-    P.makePatch("./Patches");
+    P.makePatch("./Patches/");
 
     return 0;
 }
