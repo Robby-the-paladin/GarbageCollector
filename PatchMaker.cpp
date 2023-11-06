@@ -1,6 +1,6 @@
-#include "PatchMaker.h"
+п»ї#include "PatchMaker.h"
 
-// Загрузка спеков из api, или из git
+// Р—Р°РіСЂСѓР·РєР° СЃРїРµРєРѕРІ РёР· api, РёР»Рё РёР· git
 void PatchMaker::loadSpecs(specLoader sl) {
 	if (sl == specLoader::apiLoader) {
 		SpecCollector s;
@@ -9,7 +9,7 @@ void PatchMaker::loadSpecs(specLoader sl) {
 		}
 	}
 	if (sl == specLoader::gitLoader) {
-		// TODO: сделать загрузку с гита
+		// TODO: СЃРґРµР»Р°С‚СЊ Р·Р°РіСЂСѓР·РєСѓ СЃ РіРёС‚Р°
 	}
 }
 
@@ -58,7 +58,7 @@ std::string generatePatch(std::string spec, std::vector<Dependency>& ds) {
     return spec;
 }
 
-// Генерирует патч по названию пакета и сохраняет его по указанному пути
+// Р“РµРЅРµСЂРёСЂСѓРµС‚ РїР°С‚С‡ РїРѕ РЅР°Р·РІР°РЅРёСЋ РїР°РєРµС‚Р° Рё СЃРѕС…СЂР°РЅСЏРµС‚ РµРіРѕ РїРѕ СѓРєР°Р·Р°РЅРЅРѕРјСѓ РїСѓС‚Рё
 void PatchMaker::makePatch(std::string patch_destination) {
 	for (int i = 0; i < packagesToPatch.size(); i++) {
 		FILE* spec = fopen("Specfile.spec", "wb");
