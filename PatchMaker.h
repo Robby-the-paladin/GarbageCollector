@@ -24,7 +24,7 @@ public:
 	std::vector<std::string> packagesToPatch;
 
 	// список устаревших зависимостей по названию пакета
-	std::map<std::string, std::vector<std::string>> dependenciesToDelete;
+	std::map<std::string, std::vector<Dependency>> dependenciesToDelete;
 
 	// Обрабатываемая ветка
 	std::string branch;
