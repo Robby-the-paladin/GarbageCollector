@@ -70,7 +70,9 @@ int main(int argc, char *argv[]) {
         // if (index >= 40) {
         //     break;
         // }
-        if (*it != "asterisk-core-sounds-fr-gsm") {
+        if (*it != "asterisk-core-sounds-fr-gsm" && *it != "asterisk-core-sounds-fr-siren14" &&
+            *it != "ocaml-sqlite3" && *it != "asterisk-core-sounds-fr-sln16" &&
+            *it != "samba-client-control" && *it != "alterator-wizardface") {
             continue;
         }
         test.insert(*it);
