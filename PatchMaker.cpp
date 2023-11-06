@@ -72,7 +72,7 @@ void PatchMaker::makePatch(std::string patch_destination) {
 		Fclose(spec);
 
         FILE* patched = fopen("PatchedSpecfile.spec", "wb");
-        std::string patched_str = generatePatch(specs[packagesToPatch[i]], dependenciesToDelete[packagesToPatch[i]])
+        std::string patched_str = generatePatch(specs[packagesToPatch[i]], dependenciesToDelete[packagesToPatch[i]]);
         patched >> patched_str;
         Fclose(spec);
 
