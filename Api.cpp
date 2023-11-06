@@ -1,5 +1,21 @@
 #include "Api.h"
 
+#ifdef _WIN32
+    #include <windows.h>
+
+    void NewSleep(unsigned milliseconds)
+    {
+        Sleep(milliseconds);
+    }
+#else
+    #include <unistd.h>
+    
+    void NewSleep(unsigned milliseconds)
+    {
+        usleep(milliseconds * 1000); // takes microseconds
+    }
+#endif
+
 extern std::string apiURL;
 
 size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp)
@@ -29,6 +45,8 @@ Api::response Api::getReadBuffer(std::string req) {
         
         curl_easy_cleanup(curl);
     }
+    
+    NewSleep(1000);
 
     Json::Value root;
     Json::Reader reader;
