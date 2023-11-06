@@ -13,14 +13,20 @@ void PatchMaker::loadSpecs(specLoader sl) {
 	}
 }
 
-std::string prepareDependencyType(std::string s) {
+// Форматирует название типов зависимостей
+std::string PatchMaker::prepareDependencyType(std::string s) {
     std::transform(s.begin(), s.begin() + 1, s.begin(), ::toupper);
     std::transform(s.begin() + 1, s.end(), s.begin() + 1, ::tolower);
     return s + ":";
 }
 
+// Удаляет все зависимости ds из spec
+std::string PatchMaker::generatePatch(std::string spec, std::vector<Dependency>& ds) {
 
-std::string generatePatch(std::string spec, std::vector<Dependency>& ds) {
+    // Временное исключение changelog, для корректной работы regex replace
+    std::string changelog = spec.substr(spec.find("%changelog"));
+    spec = spec.substr(0, spec.find("%changelog"));
+
     for (int i = 0; i < ds.size(); i++) {
         std::string deptype = prepareDependencyType(ds[i].type);
         std::string version = "( " + ds[i].sign + " " + ds[i].version + ")";
@@ -55,10 +61,10 @@ std::string generatePatch(std::string spec, std::vector<Dependency>& ds) {
         std::regex expr3(ex, std::regex::icase);
         spec = std::regex_replace(spec, expr3, "$1\n");
     }
-    return spec;
+    return spec + changelog;
 }
 
-// Генерирует патч по названию пакета и сохраняет его по указанному пути
+// Генерирует патчи для пакетов и сохраняет его по указанному пути
 void PatchMaker::makePatch(std::string patch_destination) {
 	for (int i = 0; i < packagesToPatch.size(); i++) {
 		FILE* spec = fopen("Specfile.spec", "wb");

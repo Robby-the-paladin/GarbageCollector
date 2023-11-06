@@ -32,9 +32,15 @@ public:
 	// Загрузка спеков из api, или из git
 	void loadSpecs(specLoader sl = apiLoader);
 
-	// Генерирует патч по названию пакета и сохраняет его по указанному пути
-	void makePatch(std::string package, std::string patch_destination);
+	// Генерирует патчи для пакетов и сохраняет его по указанному пути
+	void makePatch(std::string patch_destination);
 
 private:
 	std::map<std::string, std::string> specs;
+
+	// Форматирует название типов зависимостей
+	std::string PatchMaker::prepareDependencyType(std::string s);
+
+	// Удаляет все зависимости ds из spec
+	std::string generatePatch(std::string spec, std::vector<Dependency>& ds);
 };
