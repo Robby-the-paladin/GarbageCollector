@@ -109,7 +109,10 @@ std::vector<PackageDependencies> RpmHandler::getDependenciesForPackages(std::vec
                             data_struct[i].version = "";
                         }
 
-                        packagesDependencies[std::string(str_name)].dependencies.push_back(data_struct[i]);                     
+                        if (packagesDependencies.find(std::string(str_name)) != packagesDependencies.end()) { 
+                            packagesDependencies[std::string(str_name)].dependencies.push_back(data_struct[i]);  
+                            break;
+                        }                   
                     }
 
                     
