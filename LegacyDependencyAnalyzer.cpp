@@ -10,9 +10,43 @@ std::vector<PackageDependencies> LegacyDependencyAnalyzer::getAllDependencies()
     return RpmHandler::getDependenciesForPackages(packagesToAnalyse);
 }
 
-void LegacyDependencyAnalyzer::criteriaChecking()
+void LegacyDependencyAnalyzer::criteriaChecking(std::string branch)
 {
-    getOldPackagesNames();
+    std::set<std::string> oldPackNames = getOldPackagesNames();
+    auto packDependencies = RpmHandler::getDependenciesForPackages(packagesToAnalyse);
+
+    std::map<std::string,std::vector<Dependency>> oldDepInPacks; // мапа стаарых зависимостей в пакете
+
+    for (auto pack: packDependencies) {
+        oldDepInPacks[pack.packageName] = {};
+
+        std::vector<std::string> dependencyPacksNames = {};
+        for (auto depName: pack.dependencies) {
+            dependencyPacksNames.push_back(depName.dependencyName);
+        }
+        
+        std::map<std::string, bool> checkOldDeps; //  проверка на то что пакет есть в oldPackNames
+        for (auto oldDep: dependencyPacksNames) {
+            if (obsolescenceChecking(oldDep)) {
+                // те пакет есть в старых репозиториях и отсутствует в актуальном
+                checkOldDeps[oldDep] = true;
+            } else {
+                checkOldDeps[oldDep] = false;
+            }
+        }
+        
+        
+        auto depSrc = isAnythingDependsSrc(dependencyPacksNames, branch);
+
+        for (auto oldPack: pack.dependencies) {
+            bool checkOld = checkOldDeps[oldPack.dependencyName]; // true если старый, иначе false
+            bool checkDepSrc = depSrc[oldPack.dependencyName]; // true если есть зависимост, иначе false
+
+            if (checkOld && !checkDepSrc) {
+                oldDepInPacks[pack.packageName].push_back(oldPack);
+            }
+        }
+    }
 }
 
 std::set<std::string> LegacyDependencyAnalyzer::getOldPackagesNames()

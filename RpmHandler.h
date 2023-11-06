@@ -18,10 +18,14 @@
 // version - версия пакета в зависимости (пока не используется)
 // sign - знак сравнения версии (пока не используется)
 struct Dependency
-{       
+{   
+    // название пакета зависимости
     std::string dependencyName;
+    // тип зависимости
     std::string type;
+    // версия пакета в зависимости (пока не используется)
     std::string version;
+    // знак сравнения версии (пока не используется)
     std::string sign;
 };
 
@@ -29,7 +33,9 @@ struct Dependency
 //  dependencies - набор зависимостей в его спек файде
 struct PackageDependencies
 {
+    // имя пакета
     std::string packageName;
+    // набор зависимостей в его спек файде
     std::vector<Dependency> dependencies;
 };
 
