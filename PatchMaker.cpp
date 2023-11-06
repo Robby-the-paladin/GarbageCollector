@@ -4,6 +4,7 @@
 void PatchMaker::loadSpecs(specLoader sl) {
 	if (sl == specLoader::apiLoader) {
 		for (int i = 0; i < packagesToPatch.size(); i++) {
+            std::cout << "Loading spec for " << packagesToPatch[i] << std::endl;
             auto spec = Api::getSpecFile(branch, packagesToPatch[i]);
             if (spec.has_value())
 			    specs[packagesToPatch[i]] = spec.value();
@@ -68,6 +69,7 @@ std::string PatchMaker::generatePatch(std::string spec, std::vector<Dependency>&
 // Генерирует патчи для пакетов и сохраняет его по указанному пути
 void PatchMaker::makePatch(std::string patch_destination) {
 	for (int i = 0; i < packagesToPatch.size(); i++) {
+        std::cout << "Patching package " + packagesToPatch[i] << "\n";
         std::ofstream spec;
         spec.open("Specfile.spec");
 		spec << specs[packagesToPatch[i]];
