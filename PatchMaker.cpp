@@ -3,9 +3,10 @@
 // Загрузка спеков из api, или из git
 void PatchMaker::loadSpecs(specLoader sl) {
 	if (sl == specLoader::apiLoader) {
-		SpecCollector s;
 		for (int i = 0; i < packagesToPatch.size(); i++) {
-			specs[packagesToPatch[i]] = s.getSpec(branch, packagesToPatch[i]);
+            auto spec = Api::getSpecFile(branch, packagesToPatch[i]);
+            if (spec.has_value())
+			    specs[packagesToPatch[i]] = spec.value();
 		}
 	}
 	if (sl == specLoader::gitLoader) {
@@ -67,22 +68,20 @@ std::string PatchMaker::generatePatch(std::string spec, std::vector<Dependency>&
 // Генерирует патчи для пакетов и сохраняет его по указанному пути
 void PatchMaker::makePatch(std::string patch_destination) {
 	for (int i = 0; i < packagesToPatch.size(); i++) {
-		FILE* spec = fopen("Specfile.spec", "wb");
-		spec >> specs[packagesToPatch[i]];
-		Fclose(spec);
+        std::ofstream spec;
+        spec.open("Specfile.spec");
+		spec << specs[packagesToPatch[i]];
 
-        FILE* patched = fopen("PatchedSpecfile.spec", "wb");
+        std::ofstream patched;
+        patched.open("PatchedSpecfile.spec");
         std::string patched_str = generatePatch(specs[packagesToPatch[i]], dependenciesToDelete[packagesToPatch[i]]);
-        patched >> patched_str;
-        Fclose(spec);
+        patched << patched_str;
 
         if (patched_str != specs[packagesToPatch[i]]) {
-            int resp = system("diff -Naru Specfile.spec PatchedSpecfile.spec > " + patch_destination + packagesToPatch[i] + ".patch");
+            int resp = system(("diff -Naru Specfile.spec PatchedSpecfile.spec > " + patch_destination + packagesToPatch[i] + ".patch").c_str());
             if (resp != 0) {
-                error++;
-                std::cout << "Error while making patch" << resp << std::endl;
-                return {};
-
+                std::cout << "Error while making patch for " << packagesToPatch[i] << ": " << resp << std::endl;
+                continue;
             }
         }
 	}

@@ -47,7 +47,7 @@ class LegacyDependencyAnalyzer {
         std::vector<PackageDependencies> getAllDependencies();
 
         // проверяет зависимости из unicDependecies на критерии (присутствие в старых репозиториях и неиспользуемость в актульном)
-        void criteriaChecking(std::string branch = "Sisyphus");
+        std::map<std::string,std::vector<Dependency>> criteriaChecking(std::string branch = "Sisyphus");
     private:
         // список уникальных зависимостей генерируемых методом getAllDependencies
         std::set<Dependency> unicDependecies;

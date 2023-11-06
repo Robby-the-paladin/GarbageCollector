@@ -13,6 +13,7 @@
 #include <rpm/header.h>
 #include "rpmDB_test.h"
 #include "LegacyDependencyAnalyzer.h"
+#include "PatchMaker.h"
 //#include <pqxx/pqxx>
 
 using namespace std;
@@ -151,7 +152,12 @@ int main(int argc, char *argv[]) {
     auto  L = LegacyDependencyAnalyzer();
     L.analysingBranchPackages();
     std::cout << L.packagesToAnalyse.size() << std::endl;
-    L.criteriaChecking();
+
+    auto P = PatchMaker();
+    P.packagesToPatch = L.packagesToAnalyse;
+    P.dependenciesToDelete = L.criteriaChecking();
+    P.loadSpecs(PatchMaker::specLoader::apiLoader);
+    P.makePatch("./Patches");
     return 0;
     
     string branch = "sisyphus";

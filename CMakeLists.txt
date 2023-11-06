@@ -32,7 +32,8 @@ add_executable(GarbageCollector
          "Api.h" "Api.cpp" "SpecParser.h" "SpecParser.cpp" "PostgreHandler.h" 
          "PostgreHandler.cpp" "rpmDB_test.h" "rpmDB_test.cpp"
          "LegacyDependencyAnalyzer.h" "LegacyDependencyAnalyzer.cpp"
-         "RpmHandler.h" "RpmHandler.cpp")
+         "RpmHandler.h" "RpmHandler.cpp"
+         "PatchMaker.h" "PatchMaker.cpp")
 
 include_directories(${JSONCPP_INCLUDE_DIR})
 message("JSONINC:" ${JSONCPP_INCLUDE_DIR})

@@ -10,7 +10,7 @@ std::vector<PackageDependencies> LegacyDependencyAnalyzer::getAllDependencies()
     return RpmHandler::getDependenciesForPackages(packagesToAnalyse);
 }
 
-void LegacyDependencyAnalyzer::criteriaChecking(std::string branch)
+std::map<std::string,std::vector<Dependency>> LegacyDependencyAnalyzer::criteriaChecking(std::string branch)
 {
     std::set<std::string> oldPackNames = getOldPackagesNames();
     auto packDependencies = RpmHandler::getDependenciesForPackages(packagesToAnalyse);
@@ -47,6 +47,7 @@ void LegacyDependencyAnalyzer::criteriaChecking(std::string branch)
             }
         }
     }
+    return oldDepInPacks;
 }
 
 std::set<std::string> LegacyDependencyAnalyzer::getOldPackagesNames()
