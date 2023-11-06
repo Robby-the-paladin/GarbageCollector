@@ -33,7 +33,7 @@ public:
 	std::map<std::string, std::vector<Dependency>> dependenciesToDelete;
 
 	// Обрабатываемая ветка
-	std::string branch;
+	std::string branch = "sisyphus";
 
 	// Загрузка спеков из api, или из git
 	void loadSpecs(specLoader sl = specLoader::apiLoader);

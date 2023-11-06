@@ -24,9 +24,9 @@ mutex cnt_mute;
 std::string postgreConnStr = "user=doadmin password=AVNS_xMD70wwF41Btbfo6iaz host=db-postgresql-fra1-79796-do-user-14432859-0.b.db.ondigitalocean.com port=25060 dbname=test target_session_attrs=read-write";
 //std::string postgreConnStr = "user=edgar password=genius host=host.docker.internal port=5432 dbname=test target_session_attrs=read-write";
 //Прокся
-std::string apiURL = "http://64.226.73.174:8080";
+//std::string apiURL = "http://64.226.73.174:8080";
 //не прокся (медленно)
-//std::string apiURL = "https://rdb.altlinux.org";
+std::string apiURL = "https://rdb.altlinux.org";
 int threadsSize = 100;
 
 std::set<std::string> errorPackages;
@@ -151,6 +151,7 @@ int main(int argc, char *argv[]) {
 
     auto  L = LegacyDependencyAnalyzer();
     L.analysingBranchPackages();
+    L.packagesToAnalyse.resize(10);
     std::cout << L.packagesToAnalyse.size() << std::endl;
 
     auto P = PatchMaker();

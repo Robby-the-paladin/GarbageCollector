@@ -35,8 +35,9 @@ std::map<std::string,std::vector<Dependency>> LegacyDependencyAnalyzer::criteria
             }
         }
         
-        
-        auto depSrc = isAnythingDependsSrc(dependencyPacksNames, branch);
+        std::string lb = branch;
+        std::transform(lb.begin(), lb.end(), lb.begin(), ::tolower);
+        auto depSrc = isAnythingDependsSrc(dependencyPacksNames, lb);
 
         for (auto oldPack: pack.dependencies) {
             bool checkOld = checkOldDeps[oldPack.dependencyName]; // true если старый, иначе false
