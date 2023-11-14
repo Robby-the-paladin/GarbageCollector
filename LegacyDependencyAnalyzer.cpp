@@ -10,7 +10,7 @@ std::vector<PackageDependencies> LegacyDependencyAnalyzer::getAllDependencies()
     return RpmHandler::getDependenciesForPackages(packagesToAnalyse);
 }
 
-std::map<std::string,std::vector<Dependency>> LegacyDependencyAnalyzer::criteriaChecking(std::string branch)
+std::map<std::string,std::vector<Dependency>> LegacyDependencyAnalyzer::criteriaChecking(Cacher& ch, std::string branch)
 {
     std::set<std::string> oldPackNames = getOldPackagesNames();
     auto packDependencies = RpmHandler::getDependenciesForPackages(packagesToAnalyse);
@@ -37,7 +37,7 @@ std::map<std::string,std::vector<Dependency>> LegacyDependencyAnalyzer::criteria
         
         std::string lb = branch;
         std::transform(lb.begin(), lb.end(), lb.begin(), ::tolower);
-        auto depSrc = isAnythingDependsSrc(dependencyPacksNames, lb);
+        auto depSrc = isAnythingDependsSrc(dependencyPacksNames, lb, ch);
 
         std::cout <<  pack.dependencies.size() << std::endl;
         for (auto oldPack: pack.dependencies) {
@@ -73,17 +73,18 @@ std::set<std::string> LegacyDependencyAnalyzer::getOldPackagesNames()
     return oldPackages;
 }
 
-bool LegacyDependencyAnalyzer::isAnythingDependsSrc(std::string packageName, std::string branch)
+bool LegacyDependencyAnalyzer::isAnythingDependsSrc(std::string packageName, std::string branch, Cacher& ch)
 {
-    auto resps = Api::divide_et_impera({packageName}, branch); // тк возвращается вектор то возьмем 0 элемент
+    auto resps = Api::divide_et_impera({packageName}, branch, ch); // тк возвращается вектор то возьмем 0 элемент
     auto checkedPack = resps[0];
 
     return !checkedPack.can_delete; // те возвращаем true если есть зависимость, иначе false 
 }
 
-std::map<std::string, bool> LegacyDependencyAnalyzer::isAnythingDependsSrc(std::vector<std::string> packagesNames, std::string branch)
+std::map<std::string, bool> LegacyDependencyAnalyzer::isAnythingDependsSrc(std::vector<std::string> packagesNames, std::string branch, Cacher& ch)
 {   
-    auto resps = Api::divide_et_impera(packagesNames, branch);
+
+    auto resps = Api::divide_et_impera(packagesNames, branch, ch);
     std::map<std::string, bool>  out;
     for (auto checkedPack: resps)
     {

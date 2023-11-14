@@ -9,6 +9,9 @@
 #include <json/json.h>
 #include <unistd.h>
 #include "base64.h"
+#include "Cacher.h"
+#include "Aux.h"
+
 
 class Api {
 public:
@@ -23,24 +26,13 @@ public:
         long http_code;
     };
     
-    // информация о пакете
-    // name - название пакета
-    // http_code - код ответа севрера
-    // can_delete - true если никем не используется, иначе false
-    struct checked_package {
-        // название пакета
-        std::string name;
-        // код ответа севрера
-        long http_code;
-        // true если никем не используется, иначе false
-        bool can_delete;
-    };
+    
     
 
 	Api() {};
 
-    // проверяет, можно ли удалять пакет, возвращает вектор структур checked_package
-    std::vector<checked_package> static divide_et_impera(std::vector<std::string> packagesNames, std::string branch);
+    // проверяет, можно ли удалять пакет, возвращает вектор структур Aux::checked_package
+    std::vector<Aux::checked_package> static divide_et_impera(std::vector<std::string> packagesNames, std::string branch, Cacher& ch);
     
     // получает список активных веток
     std::vector<std::string> getActiveBranches(); 
@@ -60,7 +52,7 @@ public:
     std::optional<std::string> static getSpecFile(std::string branch, std::string name);
 
     private:
-    // проверяет список пакетов на бесполезность. возвращает вектор структур checked_package
-    std::vector<checked_package> static checkPackage(std::vector<std::string> packagesNames, std::string branch);
+    // проверяет список пакетов на бесполезность. возвращает вектор структур Aux::checked_package
+    std::vector<Aux::checked_package> static checkPackage(std::vector<std::string> packagesNames, std::string branch, Cacher& ch);
 
 };

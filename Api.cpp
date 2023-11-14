@@ -87,9 +87,27 @@ std::set<std::string> Api::getBranchPackageNames(std::string branch) {
     return result;
 }
 
-std::vector<Api::checked_package> Api::checkPackage(std::vector<std::string> pnames, std::string branch) {
+std::vector<Aux::checked_package> Api::checkPackage(std::vector<std::string> pnames, std::string branch, Cacher& ch) {
+    std::vector<Aux::checked_package> out;
+
+    // ------------------------ Кеширование TODO
+    std::vector<std::string> not_cache_pnames; // собираем список пакетов, которых нет в кеше
+
+    for (auto pn: pnames)
+    {
+        auto resp = ch.getCache(pn);
+        if (resp.has_value()) {
+            auto val = resp.value();
+            out.push_back(val);
+        } else {
+            not_cache_pnames.push_back(pn);
+        }   
+    }
+    pnames = not_cache_pnames;
+
+    // ------------------------
+    
     std::string host = apiURL+"/api/package/what_depends_src?";
-    std::vector<Api::checked_package> out;
     std::string oss_test;
     if (!pnames.empty()) {
         for (int i = 0; i < pnames.size() - 1; i++) { 
@@ -117,7 +135,7 @@ std::vector<Api::checked_package> Api::checkPackage(std::vector<std::string> pna
                 for (auto name: S["requires"]) {
                     if (name == packageName) {
                         // тк пакет packageName есть у когото в requires ставим can_delete false
-                        checked_package a;
+                        Aux::checked_package a;
                         a.can_delete = false;
                         a.http_code = 200;
                         a.name = packageName;
@@ -134,7 +152,7 @@ std::vector<Api::checked_package> Api::checkPackage(std::vector<std::string> pna
 
             if (!isFound) {
                 // тк ни у кого в requires нет такого пакета то can_delete true
-                checked_package a;
+                Aux::checked_package a;
                 a.can_delete = true; 
                 a.http_code = 200;
                 a.name = packageName;
@@ -145,14 +163,20 @@ std::vector<Api::checked_package> Api::checkPackage(std::vector<std::string> pna
     } else {
         std::cout << "Странный ответ от апи/прокси: " << http_code << " " << oss_test << std::endl;
     }
+
+    // 
+    for (auto pack: out) {
+        ch.setCache(pack.name, pack);
+    } 
+    //  ----------------  
     return out;
 }
 
-std::vector<Api::checked_package> Api::divide_et_impera(std::vector<std::string> packagesNames, std::string branch) {
+std::vector<Aux::checked_package> Api::divide_et_impera(std::vector<std::string> packagesNames, std::string branch, Cacher& ch) {
     // divide et impera
     // Выборка по 10 пакетов, чтобы предотваратить слишком длинные запросы (хорошо бы вынести как регулируемый параметр)
     if (packagesNames.size() > 80) {
-        std::vector<Api::checked_package> result;
+        std::vector<Aux::checked_package> result;
         for (int i = 0; i < packagesNames.size();) {
             std::vector<std::string> pnames;
             auto index = std::min(packagesNames.size(), i + size_t(80));
@@ -160,7 +184,7 @@ std::vector<Api::checked_package> Api::divide_et_impera(std::vector<std::string>
                 pnames.push_back(packagesNames[i]);
             }
             std::cout << pnames.size() << std::endl;
-            auto res = checkPackage(pnames, branch);
+            auto res = checkPackage(pnames, branch, ch);
             for (auto pack : res) {
                 result.push_back(pack);
             }
@@ -171,7 +195,7 @@ std::vector<Api::checked_package> Api::divide_et_impera(std::vector<std::string>
     // TODO: если пакет с данным именем присутствует в Requires api то false иначе true
     // https://rdb.altlinux.org/api/package/what_depends_src?packages=python3-dev&branch=p10&depth=5&dptype=both&finite_package=false&oneandhalf=false&use_last_tasks=false
 
-    return checkPackage(packagesNames, branch);
+    return checkPackage(packagesNames, branch, ch);
 }
 
 std::optional<std::string> Api::getHash(std::string branch, std::string name){

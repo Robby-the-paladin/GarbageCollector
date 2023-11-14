@@ -49,4 +49,7 @@ private:
 
 	// Удаляет все зависимости ds из spec
 	std::string generatePatch(std::string spec, std::vector<Dependency>& ds);
+
+	// инкриментирует реелиз
+	std::string incriment_release(std::string release);
 };

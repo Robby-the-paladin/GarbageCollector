@@ -26,13 +26,13 @@ std::string ReplaceAll(std::string str, const std::string& from, const std::stri
 std::string RpmHandler::constNameClassic = "pkglist.classic.";
 std::vector<std::string> RpmHandler::classicArches = {"x86_64", "noarch"};
 
-std::map<std::string, std::string> RpmHandler::getAllPackagesName(std::string branch, std::set<std::string> packNames)
+std::map<std::string, std::pair<std::string, std::string>> RpmHandler::getAllPackagesName(std::string branch, std::set<std::string> packNames)
 {   
-    std::map<std::string, std::string> srcNameToPackName; // ставит в соответствии имени .src.rpm нормальное имя пакета 
+    std::map<std::string, std::pair<std::string, std::string>> srcNameToPackName; // ставит в соответствии имени .src.rpm нормальное имя пакета 
     std::vector<std::string> out;
     std::string name =  "%{NAME}";
     std::string src_name = "%{SOURCERPM}";
-    
+    std::string release = "%{RELEASE}";
     // зашрузка classic файлов для branch если файлы отсутствуют
     for (auto arch: classicArches)
     {
@@ -59,13 +59,14 @@ std::map<std::string, std::string> RpmHandler::getAllPackagesName(std::string br
             const char *err = "unknown error";
             char *str_name = headerFormat(h, name.c_str(), &err);
             char *src_str_name = headerFormat(h, src_name.c_str(), &err);
+            char *str_release = headerFormat(h, release.c_str(), &err);
             if (str_name == NULL) {
                 fprintf(stderr, "%s: %s:\n", pkglist, err);
             }
             else {
                 auto name = ReplaceAll(std::string(str_name), "+", "%2B");
                 if (packNames.find(name) != packNames.end()){
-                    srcNameToPackName[src_str_name] = name;
+                    srcNameToPackName[src_str_name] = {name, str_release};
                 }
 
                 out.push_back(ReplaceAll(std::string(str_name), "+", "%2B"));
@@ -82,14 +83,14 @@ std::map<std::string, std::string> RpmHandler::getAllPackagesName(std::string br
     return srcNameToPackName;
 }
 
-std::vector<PackageDependencies> RpmHandler::getDependenciesForPackages(std::map<std::string, std::string> packageList)
+std::vector<PackageDependencies> RpmHandler::getDependenciesForPackages(std::map<std::string, std::pair<std::string, std::string>> packageList)
 {   
     // словарь [имя пакета, структура PackageDependencies те его зависимости в спек файле]
     std::map<std::string, PackageDependencies> packagesDependencies;
 
     for (auto name: packageList)
     {   
-        packagesDependencies[std::string(name.first)] = PackageDependencies{packageName: name.second};
+        packagesDependencies[std::string(name.first)] = PackageDependencies{packageName: name.second.first, release: name.second.second};
     }
     
     const char *progname = "";
@@ -126,7 +127,8 @@ std::vector<PackageDependencies> RpmHandler::getDependenciesForPackages(std::map
                             data_struct[i].version = "";
                         }
 
-                        if (packagesDependencies.find(std::string(str_name)) != packagesDependencies.end()) { 
+                        if (packagesDependencies.find(std::string(str_name)) != packagesDependencies.end() && 
+                            !(elem == "provides" && data_struct[i].dependencyName == packagesDependencies[std::string(str_name)].packageName) ) { 
                             
                             packagesDependencies[std::string(str_name)].dependencies.push_back(data_struct[i]);  
                             // break;

@@ -28,12 +28,16 @@ pkg_check_modules(JSONCPP jsoncpp)
 link_libraries(${JSONCPP_LIBRARIES})
 
 add_executable(GarbageCollector
-        main.cpp "SpecCollector.h" "SpecCollector.cpp" "base64.h" "base64.cpp"
-         "Api.h" "Api.cpp" "SpecParser.h" "SpecParser.cpp" "PostgreHandler.h" 
-         "PostgreHandler.cpp" "rpmDB_test.h" "rpmDB_test.cpp"
-         "LegacyDependencyAnalyzer.h" "LegacyDependencyAnalyzer.cpp"
-         "RpmHandler.h" "RpmHandler.cpp"
-         "PatchMaker.h" "PatchMaker.cpp")
+        main.cpp
+        "base64.h" "base64.cpp"
+        "Cacher.h" "Cacher.cpp"
+        "Api.h" "Api.cpp"
+        "PostgreHandler.h" "PostgreHandler.cpp" 
+        "LegacyDependencyAnalyzer.h" "LegacyDependencyAnalyzer.cpp"
+        "RpmHandler.h" "RpmHandler.cpp"
+        "PatchMaker.h" "PatchMaker.cpp"
+        "Aux.h"
+         )
 
 include_directories(${JSONCPP_INCLUDE_DIR})
 message("JSONINC:" ${JSONCPP_INCLUDE_DIR})

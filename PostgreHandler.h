@@ -8,7 +8,7 @@
 #include <chrono>
 #include <vector>
 #include <pqxx/pqxx>
-#include "Api.h"
+// #include "Api.h"
 
 class PostgreHandler {
 public:
@@ -18,21 +18,11 @@ public:
 	PostgreHandler();
     void reconnect();
     
-    bool addDeprecated(std::string name, std::string col, std::set<std::string> data); 
-    bool getDeprecated(std::string name, std::string col, std::set<std::string>& data);
-    bool addCount(std::string name, int count);
+    // добавить пакет в бд
+    bool addDeprecated(std::string name, bool data); 
 
-    bool isDeprecatedNull(std::string name);
-
-    std::vector<std::string> getCheckedPackages(std::vector<std::string> names, std::string branch, std::set<std::string>& unic_list);
-    bool setCheckedPackage(std::string name);
-
-    std::set<std::string> getAllNames();
-    std::set<std::string> getNamesWithData();
-    bool replaceDeprecatedWith(std::string name, std::string col, std::set<std::string> data);
-
-    bool checkDeprDate(std::string pname, std::string branch);
-    void remove_provides(std::string key, std::string remove_name);
+    // получить значение по имени пакета или nullopt 
+    std::optional<bool> getDeprecated(std::string name);
 };
 
 

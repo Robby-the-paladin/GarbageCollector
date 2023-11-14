@@ -1,25 +1,14 @@
 #include <iostream>
-#include <regex>
 #include <unistd.h>
 #include <set>
 #include <map>
-#include <queue>
-#include <thread>
-#include <mutex>
-#include "SpecCollector.h"
-#include "SpecParser.h"
-#include "PostgreHandler.h"
 #include "Api.h"
-#include <rpm/header.h>
-#include "rpmDB_test.h"
 #include "LegacyDependencyAnalyzer.h"
 #include "PatchMaker.h"
-//#include <pqxx/pqxx>
+#include "Cacher.h"
 
 using namespace std;
 
-int counter = 0;
-mutex cnt_mute;
 // А точно безоавсно хранить админский ключ в строке на гите, и так сойдет ...
 std::string postgreConnStr = "user=doadmin password=AVNS_xMD70wwF41Btbfo6iaz host=db-postgresql-fra1-79796-do-user-14432859-0.b.db.ondigitalocean.com port=25060 dbname=test target_session_attrs=read-write";
 //std::string postgreConnStr = "user=edgar password=genius host=host.docker.internal port=5432 dbname=test target_session_attrs=read-write";
@@ -31,31 +20,13 @@ int threadsSize = 100;
 
 std::set<std::string> errorPackages;
 
-std::ostream& operator << (std::ostream &os, const SpecParser::lib_data &lib)
-{
-    return os << lib.name << " " << lib.sign << " " << lib.version << " " << lib.type;
-}
-
-PostgreHandler ph;
-
-std::set<std::string> unic_list;
-
-set<std::string> getUnicalPackageNames(vector<std::string> fromApi, set<std::string> fromDB){
-    std::set<std::string> remaining_names;
-
-    for (const std::string& name : fromApi) {
-        if (fromDB.find(name) == fromDB.end()) {
-            remaining_names.insert(name);
-        }
-    }
-    return remaining_names;
-}
-
 
 
 int main(int argc, char *argv[]) {
 
     // Api::getBranchPackageNames("sisyphus");
+    Cacher CH;
+
     auto  L = LegacyDependencyAnalyzer();
     
     auto t = Api::getBranchPackageNames("sisyphus");
@@ -70,9 +41,11 @@ int main(int argc, char *argv[]) {
         // if (index >= 40) {
         //     break;
         // }
-        if (*it != "asterisk-core-sounds-fr-gsm" && *it != "asterisk-core-sounds-fr-siren14" &&
-            *it != "ocaml-sqlite3" && *it != "asterisk-core-sounds-fr-sln16" &&
-            *it != "samba-client-control" && *it != "alterator-wizardface") {
+        // if (*it != "asterisk-core-sounds-fr-gsm" && *it != "asterisk-core-sounds-fr-siren14" &&
+            // *it != "ocaml-sqlite3" && *it != "asterisk-core-sounds-fr-sln16" &&
+            // *it != "samba-client-control" && *it != "alterator-wizardface" && 
+        if(
+            (*it).substr(0, string("asterisk-core-sounds").size()) != "asterisk-core-sounds") {
             continue;
         }
         test.insert(*it);
@@ -82,20 +55,34 @@ int main(int argc, char *argv[]) {
     L.analysingBranchPackages(test);
     // L.packagesToAnalyse = t;
 
-    std::vector<std::string> packages;
-    for(auto pack: L.packagesToAnalyse) {
-        cout << pack.second << endl;
-        packages.push_back(pack.second);
-    }
+    //  for(auto pack: L.packagesToAnalyse) {
+    //     cout << pack.second.first << " Release: " << pack.second.second << endl;
+    // }
+
     // return 0;
 
+    std::vector<std::string> packages;
+    std::map<std::string, std::pair<std::string, std::string>> test_pack;
+    int count = 5;
+    for(auto pack: L.packagesToAnalyse) {
+        cout << pack.second.first << endl;
+        packages.push_back(pack.second.first);
+        test_pack[pack.first] = pack.second;
+        if (count <= 0) {
+            L.packagesToAnalyse = test_pack;
+            break;
+        }
+        count--;
+    }
+    // return 0;
+    // packages.resize(5);
     std::cout << L.packagesToAnalyse.size() << std::endl;
 
     auto P = PatchMaker();
     P.packagesToPatch = packages;
-    P.dependenciesToDelete = L.criteriaChecking();
+    P.dependenciesToDelete = L.criteriaChecking(CH);
     P.loadSpecs(PatchMaker::specLoader::apiLoader);
-    P.makePatch("./Patches/");
+    P.makePatch("./Patches2/");
 
     return 0;
 }
