@@ -36,6 +36,7 @@ add_executable(GarbageCollector
         "LegacyDependencyAnalyzer.h" "LegacyDependencyAnalyzer.cpp"
         "RpmHandler.h" "RpmHandler.cpp"
         "PatchMaker.h" "PatchMaker.cpp"
+        "Config.h" "Config.cpp"
         "Aux.h"
          )
 
