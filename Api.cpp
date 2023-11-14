@@ -1,21 +1,5 @@
 #include "Api.h"
 
-#ifdef _WIN32
-    #include <windows.h>
-
-    void NewSleep(unsigned milliseconds)
-    {
-        Sleep(milliseconds);
-    }
-#else
-    #include <unistd.h>
-    
-    void NewSleep(unsigned milliseconds)
-    {
-        usleep(milliseconds * 1000); // takes microseconds
-    }
-#endif
-
 extern std::string apiURL;
 
 size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp)
@@ -46,7 +30,8 @@ Api::response Api::getReadBuffer(std::string req) {
         curl_easy_cleanup(curl);
     }
     
-    NewSleep(1000);
+    // sleep на 1000 мс те на 1с
+    usleep(10000 * 1000);
 
     Json::Value root;
     Json::Reader reader;
@@ -93,6 +78,8 @@ std::vector<Aux::checked_package> Api::checkPackage(std::vector<std::string> pna
     // ------------------------ Кеширование TODO
     std::vector<std::string> not_cache_pnames; // собираем список пакетов, которых нет в кеше
 
+    std::cout << "Api start " << pnames.size() <<"\n";
+
     for (auto pn: pnames)
     {
         auto resp = ch.getCache(pn);
@@ -106,6 +93,7 @@ std::vector<Aux::checked_package> Api::checkPackage(std::vector<std::string> pna
     pnames = not_cache_pnames;
 
     // ------------------------
+     
     
     std::string host = apiURL+"/api/package/what_depends_src?";
     std::string oss_test;
@@ -130,11 +118,11 @@ std::vector<Aux::checked_package> Api::checkPackage(std::vector<std::string> pna
 
     if (http_code == 200) {
         for(auto packageName: pnames) {
-            bool isFound = false; // проверяет на то что пакет нашелся у когото в requires
+            bool isFound = false; // проверяет на то что пакет нашелся у кого-то в requires
             for (auto S: resp.root["dependencies"]) {
                 for (auto name: S["requires"]) {
                     if (name == packageName) {
-                        // тк пакет packageName есть у когото в requires ставим can_delete false
+                        // тк пакет packageName есть у кого-то в requires ставим can_delete false
                         Aux::checked_package a;
                         a.can_delete = false;
                         a.http_code = 200;
@@ -166,6 +154,7 @@ std::vector<Aux::checked_package> Api::checkPackage(std::vector<std::string> pna
 
     // 
     for (auto pack: out) {
+        std::cout << "Api set cache\n";
         ch.setCache(pack.name, pack);
     } 
     //  ----------------  

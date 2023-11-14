@@ -7,10 +7,6 @@ PostgreHandler::PostgreHandler(): connect(pqxx::connection(postgreConnStr)) {
     pqxx::work W(connect);
     W.exec("CREATE TABLE IF NOT EXISTS packages_what_dep_src (name TEXT PRIMARY KEY, \"what_src\" boolean)");
     W.commit();
-    // connect.prepare("insert_data", "INSERT INTO depr VALUES ($1, $2, null, 0)");
-    // connect.prepare("insert_depr_data", "INSERT INTO depr VALUES ($1, null, $2, 0)");
-    // connect.prepare("update_data", "UPDATE depr SET data = $2 WHERE name = $1");
-    // connect.prepare("update_depr_data", "UPDATE depr SET depr_data = $2 WHERE name = $1");
 }
 
 void PostgreHandler::reconnect() {
@@ -38,7 +34,7 @@ bool PostgreHandler::addDeprecated(std::string name, bool data) {
     pqxx::work W(connect);
     auto res = W.exec("SELECT *  FROM packages_what_dep_src WHERE name = '" + name + "'");
     if (res.begin() == res.end())
-        W.exec_prepared("INSERT INTO packages_what_dep_src VALUES ($1, $2)", name, data);
+        auto res = W.exec_params("INSERT INTO packages_what_dep_src VALUES ($1, $2)", name, data);
     W.commit();
     
     return true;
@@ -59,5 +55,5 @@ std::optional<bool> PostgreHandler::getDeprecated(std::string name) {
             }
         }
     
-    return true;
+    return std::nullopt;
 }

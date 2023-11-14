@@ -42,9 +42,9 @@ std::map<std::string,std::vector<Dependency>> LegacyDependencyAnalyzer::criteria
         std::cout <<  pack.dependencies.size() << std::endl;
         for (auto oldPack: pack.dependencies) {
             bool checkOld = checkOldDeps[oldPack.dependencyName]; // true если старый, иначе false
-            bool checkDepSrc = depSrc[oldPack.dependencyName]; // true если есть зависимост, иначе false
+            bool checkDepSrc = depSrc[oldPack.dependencyName]; // true если есть зависимость, иначе false
 
-            std::cout << "Is old? " << checkOld << " Is depend..? " << checkDepSrc << std::endl; 
+            std::cout << oldPack.dependencyName << " " << oldPack.type << " " << "Is old? " << checkOld << " Is depend..? " << checkDepSrc << std::endl; 
             if (checkOld && !checkDepSrc) {
                 oldDepInPacks[pack.packageName].push_back(oldPack);
                 std::cout << pack.packageName << " delete => " << oldPack.dependencyName << " " << oldPack.type << std::endl;

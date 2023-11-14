@@ -2,7 +2,7 @@
 
 std::optional<Aux::checked_package> Cacher::getCache(std::string key)
 {   
-   
+
     if (in_memore_cache.find(key) != in_memore_cache.end()) {
         return Aux::checked_package{
             name: key,
@@ -15,6 +15,7 @@ std::optional<Aux::checked_package> Cacher::getCache(std::string key)
 
     auto elem = ph.getDeprecated(key);
     if (!elem.has_value()) {
+        ch_mutex.unlock();
         return std::nullopt;
     }
 
