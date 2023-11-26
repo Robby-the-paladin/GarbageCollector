@@ -29,69 +29,44 @@ std::string PatchMaker::generatePatch(std::string spec, std::vector<Dependency>&
     spec = spec.substr(0, spec.find("%changelog"));
 
     for (int i = 0; i < ds.size(); i++) {
-        std::string deptype = prepareDependencyType(ds[i].type);
-        std::string version = "( " + ds[i].sign + " " + ds[i].version + ")";
-        std::string ex;
+        // Запускаем пока изменяется спек
+        auto old_spec = spec;
+        do {
+            old_spec = spec;
+            std::string deptype = prepareDependencyType(ds[i].type);
+            std::string version = "( " + ds[i].sign + " " + ds[i].version + ")";
+            std::string ex;
 
-        if (ds[i].version == "") {
-            version = "([^,\n]*)";
-        }
+            if (ds[i].version == "") {
+                version = "(( )*(<|>|=|<=|>=)( )+[^ ,\n]*)";
+            }        
 
-        ex = "(" + prepareDependencyType(ds[i].type) + " .*)";
-        ex += "(" + ds[i].dependencyName + ")";
-        ex += version + "(, )";
-        std::cout << ex << std::endl;
-        std::regex expr(ex, std::regex::icase);
-        spec = std::regex_replace(spec, expr, "$1");
+            ex = "(" + prepareDependencyType(ds[i].type) + " .*)";
+            ex += "(" + ds[i].dependencyName + ")";
+            ex += version + "((, )|( ))";
+            std::cout << ex << std::endl;
+            std::regex expr(ex, std::regex::icase);
+            spec = std::regex_replace(spec, expr, "$1");
 
-        if (ds[i].version == "") {
-            version = "([^\n])*";
-        }
+            if (ds[i].version == "") {
+                version = "([^\n])*";
+            }
 
-        ex = "(" + prepareDependencyType(ds[i].type) + " )";
-        ex += "(" + ds[i].dependencyName + ")";
-        ex += version + "(\\r|\\n|\\0)";
-        std::cout << ex << std::endl;
-        std::regex expr2(ex, std::regex::icase);
-        spec = std::regex_replace(spec, expr2, "");
+            ex = "(" + prepareDependencyType(ds[i].type) + " )";
+            ex += "(" + ds[i].dependencyName + ")";
+            ex += version + "(\\r|\\n|\\0)";
+            std::cout << ex << std::endl;
+            std::regex expr2(ex, std::regex::icase);
+            spec = std::regex_replace(spec, expr2, "");
 
-        ex = "(" + prepareDependencyType(ds[i].type) + " .*)";
-        ex += "(, " + ds[i].dependencyName + ")";
-        ex += version + "(\\r|\\n|\\0)";
-        std::cout << ex << std::endl;
-        std::regex expr3(ex, std::regex::icase);
-        spec = std::regex_replace(spec, expr3, "$1\n");
+            ex = "(" + prepareDependencyType(ds[i].type) + " .*)";
+            ex += "(, " + ds[i].dependencyName + ")";
+            ex += version + "(\\r|\\n|\\0)";
+            std::cout << ex << std::endl;
+            std::regex expr3(ex, std::regex::icase);
+            spec = std::regex_replace(spec, expr3, "$1\n");
+        } while(old_spec != spec);
     }
-
-    
-    std::regex release("(Release: )"
-                        "(.*)"
-                        "(\n)");
-    std::smatch cm;
-    std::string new_release;
-    if (std::regex_search(spec, cm, release)) {
-        std::string old_release = cm[2];
-        new_release = incriment_release(old_release);
-        spec = std::regex_replace(spec, release, "$1" + new_release + "\n");
-    }
-
-    std::regex ver("(Version: )"
-                        "(.*)"
-                        "(\n)");
-    // std::smatch cm;
-    std::string version;
-    if (std::regex_search(spec, cm, ver)) {
-        std::string version = cm[2];
-    }
-
-    // * Tue Nov 07 2023 Michael Shigorin <mike@altlinux.org> 2.3-alt2
-    // - Port for Branch 5.0
-    // auto now = std::chrono::system_clock::now();
-    // std::time_t end_time = std::chrono::system_clock::to_time_t(now);
-    // std::ctime(&end_time);
-
-    // std::string new_log = "Michael Shigorin <mike@altlinux.org> " +  version + new_release;
-    // std::string message = "ALT#46206";
 
     return spec + changelog;
 }
@@ -129,19 +104,4 @@ void PatchMaker::makePatch(std::string patch_destination) {
             std::cout << "Patch not needed" << std::endl;
         }
 	}
-}
-
-std::string PatchMaker::incriment_release(std::string release) {
-    std::string number;
-    int index_back_number = release.size() - 1;
-    for (int i = index_back_number; i >= 0; i--) {
-        if (release[i] < '0' || release[i] > '9') {
-            break;
-        }
-        number = release[i] + number;
-        index_back_number--;
-    }
-
-    auto r = release.substr(0, index_back_number + 1);
-    return r + std::to_string(atoi(number.c_str()) + 1);
 }
