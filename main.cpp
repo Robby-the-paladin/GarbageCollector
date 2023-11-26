@@ -45,12 +45,13 @@ bool packageExamined(std::string pack, const std::vector<std::string>& pack_rege
 bool ask_user(std::vector<std::string> ignore_list){
     char choice;
 
-    std::cout << "WARNING: Some packages from the list for processing is not built in the current release:";
+    std::cout << "WARNING: Some packages from the list for processing is not built in the current release:\n";
     for (int i = 0; i < ignore_list.size(); i++) {
-        cout << "\t-\t" << ignore_list[i];
+        cout << "\t-\t" << ignore_list[i] << "\n";
     }
+    cout << "To process them run with -e or --enable-processing-error-pkg\n";
     cout << "Proceed without these packages? [Y/n]:";
-    std::cin >> choice;
+    choice = getchar();
 
     if (choice == 'N' || choice == 'n') {
         return false;
@@ -130,8 +131,34 @@ vector<string> get_list_errors() {
     return list_errors;
 }
 
+// Исключать пакеты из списка не собираемых пакетов
+bool ignore_error_pkgs = true;
+
+// Обработчик флагов запуска
+bool process_flags(int argc, char *argv[]) {
+    for (int i = 1; i < argc; i++) {
+        if (string(argv[i]) == "-e" || string(argv[i]) == "--enable-processing-error-pkg") {
+            ignore_error_pkgs = false;
+            continue;
+        }
+        if (string(argv[i]) == "--help") {
+            cout << "-e --enable-processing-error-pkg   Processing packages from error list\n";
+            cout << "--help                             Printing this text\n";
+            return false;
+        }
+        cout << "Unrecognised flag: " << argv[i] << "\n";
+        cout << "Run with --help to show variants\n";
+        return false;
+    }
+    return true;
+}
+
 int main(int argc, char *argv[]) {
+    if (!process_flags(argc, argv))
+        return 0;
     auto list_error = get_list_errors();
+    if (ignore_error_pkgs)
+        list_error.clear();
     // return 0;
     Config cf;
     postgreConnStr = cf.getConnectDB();
@@ -154,28 +181,25 @@ int main(int argc, char *argv[]) {
         index++;
     }
    
-
     test = check_error(test, list_error);
-    return 0;
 
     L.analysingBranchPackages(test);
  
 
     std::vector<std::string> packages;
     std::map<std::string, std::pair<std::string, std::string>> test_pack;
-    int count = 5;
     for(auto pack: L.packagesToAnalyse) {
         cout << pack.second.first << endl;
         packages.push_back(pack.second.first);
         test_pack[pack.first] = pack.second;
-        if (count <= 0) {
-            L.packagesToAnalyse = test_pack;
-            break;
-        }
-        count--;
+        // if (count <= 0) {
+        //     L.packagesToAnalyse = test_pack;
+        //     break;
+        // }
+        // count--;
     }
-    // return 0;
-    // packages.resize(5);
+
+    L.packagesToAnalyse = test_pack;
     std::cout << L.packagesToAnalyse.size() << std::endl;
 
     auto P = PatchMaker();
