@@ -1,262 +1,212 @@
 #include <iostream>
-#include <regex>
 #include <unistd.h>
 #include <set>
+#include <regex>
 #include <map>
-#include <queue>
-#include <thread>
-#include <mutex>
-#include "SpecCollector.h"
-#include "SpecParser.h"
-#include "PostgreHandler.h"
 #include "Api.h"
-#include <rpm/header.h>
-#include "rpmDB_test.h"
-//#include <pqxx/pqxx>
+#include "LegacyDependencyAnalyzer.h"
+#include "PatchMaker.h"
+#include "Cacher.h"
+#include "Config.h"
+#include <htmlcxx/html/ParserDom.h>
+#include <curl/curl.h>
 
 using namespace std;
+using namespace htmlcxx;
 
-int counter = 0;
-mutex cnt_mute;
 // А точно безоавсно хранить админский ключ в строке на гите, и так сойдет ...
-std::string postgreConnStr = "user=doadmin password=AVNS_xMD70wwF41Btbfo6iaz host=db-postgresql-fra1-79796-do-user-14432859-0.b.db.ondigitalocean.com port=25060 dbname=test target_session_attrs=read-write";
-//std::string postgreConnStr = "user=edgar password=genius host=host.docker.internal port=5432 dbname=test target_session_attrs=read-write";
+std::string postgreConnStr = "";
 //Прокся
-std::string apiURL = "http://64.226.73.174:8080";
+//std::string apiURL = "http://64.226.73.174:8080";
 //не прокся (медленно)
-//std::string apiURL = "https://rdb.altlinux.org";
-int threadsSize = 100;
+std::string apiURL = "https://rdb.altlinux.org";
 
-std::set<std::string> errorPackages;
+// возвращает true если пакет подходит хотя бы под одно регулярное выражение из конфига
+bool packageExamined(std::string pack, const std::vector<std::string>& pack_regexs, const vector<string>& list_errors) {
 
-std::ostream& operator << (std::ostream &os, const SpecParser::lib_data &lib)
+    for (auto r: pack_regexs) {
+        std::regex R(r);
+        std::smatch cm;
+        if (std::regex_search(pack, cm, R)) {
+            for (auto err: list_errors) {
+                std::regex R(pack + string(".*"));
+                std::smatch cm;
+                if (std::regex_search(err, cm, R)) {
+                    cout << "WARNING! " << pack << endl;
+                }
+            }
+
+            return true;
+        }
+    }
+    return false;
+}
+
+bool ask_user(std::vector<std::string> ignore_list){
+    char choice;
+
+    std::cout << "WARNING: Some packages from the list for processing is not built in the current release:\n";
+    for (int i = 0; i < ignore_list.size(); i++) {
+        cout << "\t-\t" << ignore_list[i] << "\n";
+    }
+    cout << "To process them run with -e or --enable-processing-error-pkg\n";
+    cout << "Proceed without these packages? [Y/n]:";
+    choice = getchar();
+
+    if (choice == 'N' || choice == 'n') {
+        return false;
+    }
+    std::cout << "Continuing..." << std::endl;
+    return true;
+}
+
+std::set<std::string> check_error(std::set<std::string> packs, std::vector<std::string> error_list) {
+    std::vector<std::string> err_l; 
+    std::set<std::string> not_err;
+    for (auto pack: packs) {
+        for (auto err: error_list) {
+            std::regex R(pack + string(".*"));
+            std::smatch cm;
+            if (std::regex_search(err, cm, R)) {
+                err_l.push_back(pack);
+            } else {
+                not_err.insert(pack);
+            }
+        }   
+    }
+
+    if (ask_user(err_l)) {
+        return not_err;
+    }
+    return packs;
+}
+
+size_t WriteCallback2(void* contents, size_t size, size_t nmemb, void* userp)
 {
-    return os << lib.name << " " << lib.sign << " " << lib.version << " " << lib.type;
+    ((std::string*)userp)->append((char*)contents, size * nmemb);
+    return size * nmemb;
 }
 
-std::string ReplaceAll(std::string str, const std::string& from, const std::string& to) {
-    size_t start_pos = 0;
-    while((start_pos = str.find(from, start_pos)) != std::string::npos) {
-        str.replace(start_pos, from.length(), to);
-        start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
+vector<string> get_list_errors() {
+    string req = "http://git.altlinux.org/beehive/logs/Sisyphus-x86_64/latest/error/";
+    CURL *curl;
+    CURLcode res;
+    std::string readBuffer;
+    long http_code = 0;
+    curl = curl_easy_init();
+    if (curl) {
+        //std::cout << req << "\n";
+        curl_easy_setopt(curl, CURLOPT_URL, req.c_str());
+        //таймаут для запроса (иначе треш)
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 305);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback2);
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+        res = curl_easy_perform(curl);
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+        if (http_code != 200)
+            std::cout << http_code  << "\n";        
+        
+        curl_easy_cleanup(curl);
     }
-    return str;
+
+    string html_content = readBuffer;
+    // Parse the HTML content
+    HTML::ParserDom parser;
+    tree<HTML::Node> dom = parser.parseTree(html_content);
+
+    // Find all 'a' tags with class 'link' and extract the 'href' attribute
+    tree<HTML::Node>::iterator it = dom.begin();
+    tree<HTML::Node>::iterator end = dom.end();
+    ++it;
+    vector<string> list_errors;
+    for (; it != end; ++it) {
+        if (it->tagName() == "a") {
+            it->parseAttributes();
+            string href = it->attribute("href").second;
+            // cout << href << endl;
+            list_errors.push_back(href);
+        }
+    }
+    return list_errors;
 }
 
-PostgreHandler ph;
+// Исключать пакеты из списка не собираемых пакетов
+bool ignore_error_pkgs = true;
 
-std::set<std::string> unic_list;
-
-
-void parseData(std::string pname, std::string branch) {
-    //std::cout << "Parsing " << pname << " ..." << std::endl;
-    SpecCollector s;
-    SpecParser p;
-    pname = ReplaceAll(pname, "+", "%2B");
-    //cout << "Getting spec " + pname << endl;
-    string spec = s.getSpec(branch, pname);
-    cout << "\nIn package " << pname << ":\n";
-    cerr << "\nIn package " << pname << ":\n";
-            //auto packages = p.getBuildRequiresPrePackages(spec);
-
-    auto cur_error = p.error;
-
-    ph.ph_lock.lock();
-    auto packages = p.getDeprecatedPackages_test(spec);
-    ph.ph_lock.unlock();
-    
-    auto test = p.strToStructSet_lib_data(packages);
-
-    if (cur_error != p.error) {
-        errorPackages.insert(pname);
-    } else {
-        ph.ph_lock.lock();
-        ph.addDeprecated(pname, "data", packages);
-        ph.ph_lock.unlock();
-    }
-
-    for (auto pack : test) {
-        std::cout << pack << " ; ";
-    }
-    std::cout << '\n';
-}
-
-void deprCheck(std::string pname, std::string branch) {
-    cnt_mute.lock();
-    counter++;
-    cnt_mute.unlock();
-    std::cout << "\nSearching deprecated packages\n" << ph.test << " " << std::endl;
-    ph.test = ph.test + 1;
-    pname = ReplaceAll(pname, "+", "%2B");
-    
-    // if (!ph.isDeprecatedNull(pname)) {
-    //     cout << "SKIP package name: " << pname << endl;
-    //     continue;
-    // }
-    std::cout << "\nIn package " << pname << ":\n";
-    cerr << "\nIn package " << pname << ":\n";
-    set<string> data, depr_data;
-
-    ph.ph_lock.lock();
-    ph.getDeprecated(pname, "data", data);
-    ph.ph_lock.unlock();
-
-    vector<SpecParser::lib_data> structs_data = SpecParser::strToStructSet_lib_data(data);
-    int index = 0;
-    vector<std::string> names;
-    for (auto pack : structs_data) {
-        if (pack.name == "") {
+// Обработчик флагов запуска
+bool process_flags(int argc, char *argv[]) {
+    for (int i = 1; i < argc; i++) {
+        if (string(argv[i]) == "-e" || string(argv[i]) == "--enable-processing-error-pkg") {
+            ignore_error_pkgs = false;
             continue;
         }
-        pack.name = ReplaceAll(pack.name, "+", "%2B");
-        pack.name = ReplaceAll(pack.name, " ", "");
-        pack.name = ReplaceAll(pack.name, "    ", "");
-       // sleep(1);
-        
-        names.push_back(pack.name);
-      //  std::cout << "   " << pack.name << endl;
-        index++;
-    }
-
-    std::vector<std::string> can_delete = ph.getCheckedPackages(names, branch, unic_list);
-    depr_data = std::set<std::string>(can_delete.begin(), can_delete.end());
-    
-    ph.ph_lock.lock();
-    ph.addDeprecated(pname, "depr_data", depr_data);
-    ph.ph_lock.unlock();
-
-    cnt_mute.lock();
-    counter--;
-    cnt_mute.unlock();
-
-}
-
-set<std::string> getUnicalPackageNames(vector<std::string> fromApi, set<std::string> fromDB){
-    std::set<std::string> remaining_names;
-
-    for (const std::string& name : fromApi) {
-        if (fromDB.find(name) == fromDB.end()) {
-            remaining_names.insert(name);
+        if (string(argv[i]) == "--help") {
+            cout << "-e --enable-processing-error-pkg   Processing packages from error list\n";
+            cout << "--help                             Printing this text\n";
+            return false;
         }
+        cout << "Unrecognised flag: " << argv[i] << "\n";
+        cout << "Run with --help to show variants\n";
+        return false;
     }
-    return remaining_names;
+    return true;
 }
-
-
 
 int main(int argc, char *argv[]) {
-    string branch = "sisyphus";
-    std::map<string, bool> actionsMap;
-    for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "-b") == 0) {
-            branch = argv[++i];
-        } else {
-            actionsMap[argv[i]] = true;
-        }
-    }
-
-    cout << "Ветка проверки: " << branch << endl;
-
-    if (argc == 1){
-        cout<<"Передайте в командной строке что вы хотите сделать"<<endl;
-        cout<<"first_buld, insert_data, insert_depr_data"<<endl;
-
+    if (!process_flags(argc, argv))
         return 0;
-    }
-    int maxThreads = std::thread::hardware_concurrency() ;
-    if (maxThreads < threadsSize) {
-        threadsSize = maxThreads;
-    }
-     if (actionsMap.find("first_buld") != actionsMap.end()){
-        string l;
-        while (cin >> l) {
-            cout << l;
-            system(("apt-get install -y " + l).c_str());
+    auto list_error = get_list_errors();
+    if (ignore_error_pkgs)
+        list_error.clear();
+    // return 0;
+    Config cf;
+    postgreConnStr = cf.getConnectDB();
+    auto pack_regexs = cf.getPackRegexs();
+
+    std::cout << postgreConnStr << std::endl;
+    Cacher CH;
+
+    auto  L = LegacyDependencyAnalyzer();
+    
+    auto t = Api::getBranchPackageNames("sisyphus");
+    set<std::string> test;
+    int index = 0;
+    for (auto it = t.begin(); it != t.end(); it++) {
+        if (!packageExamined(*it, pack_regexs, list_error)) {
+            continue;
         }
-    }
-    try {
-        cout<<"connect to db";
-    // Connect to the database
-        pqxx::connection c(postgreConnStr);
-    } catch (const exception &e) {
-        cerr << e.what() << endl;
+
+        test.insert(*it);
+        index++;
     }
    
-    SpecCollector s;
-    SpecParser p;
-    PostgreHandler ph;
-    Api api;
-    set<string> keywords;
-    keywords.insert("Obsoletes:");
-    keywords.insert("Provides:");
-    //return 0;
-    
-    cout << "Branch: " << branch << endl;
-    vector<string> pnames = s.getBranchPackageNames(branch);
-    auto unicalPackages = getUnicalPackageNames(pnames,ph.getNamesWithData());
-    cout << "Packages: " << pnames.size() << " Unical "<< unicalPackages.size()<< endl;
-    int successful = 0;
-   // vector<string> pnames;
-    int system_threads_count_insert_data = 0;
-    int system_threads_count_insert_depr_data = 0;
-    
-    // pnames = {"opennebula","fonts-bitmap-knm-new-fixed"};
-    // pnames = {"boost"};
-    //pnames = {"libtolua++-lua5.1", "tintin++", "tolua++", "libvsqlite++"};
+    test = check_error(test, list_error);
 
-    if (actionsMap.find("insert_data") != actionsMap.end()){
-        rpmDB_test r;
-        std::map<std::string,std::set<std::string>> packages = r.test();
-        
-        PostgreHandler phh;
-        auto saves = ph.getNamesWithData();
-        int count = packages.size();
-        int index = 0;
-        for(auto elem: packages) {
-            std::cout << elem.first << ": ";
-            if (saves.find(elem.first) == saves.end()) {
-                phh.addDeprecated(elem.first, "data", elem.second);
-                phh.addCount(elem.first, elem.second.size());
-            } else {
-                std::cout << "SKIP: ";
-            }
-            std::cout << index++ << " / " << count << std::endl;
-        }
-    }
+    L.analysingBranchPackages(test);
+ 
 
-    rpmDB_test r;
-    unic_list = r.get_unic_last_name();
-    
-    auto save_names = ph.getAllNames();
-    save_names = ph.getNamesWithData();
-    if (actionsMap.find("insert_depr_data") != actionsMap.end()){
-        std::queue<std::thread> threads;
-        for (auto pname : save_names) {
-            while (counter > threadsSize) {
-                sleep(1);
-            }
-            std::thread thr(deprCheck, pname, branch);
-            // threads.push(std::move(thr));
-            // while(threads.size() > threadsSize) {
-            //     threads.front().join();
-            //     threads.pop();
-            // }
-            
-            thr.detach();
-        }
-        while (counter > 0) {
-                sleep(1);
-        }
-        // while (!threads.empty()) {
-        //     threads.front().join();
-        //     threads.pop();
+    std::vector<std::string> packages;
+    std::map<std::string, std::pair<std::string, std::string>> test_pack;
+    for(auto pack: L.packagesToAnalyse) {
+        cout << pack.second.first << endl;
+        packages.push_back(pack.second.first);
+        test_pack[pack.first] = pack.second;
+        // if (count <= 0) {
+        //     L.packagesToAnalyse = test_pack;
+        //     break;
         // }
+        // count--;
     }
 
-    if (actionsMap.find("remove_provides") != actionsMap.end()){
-        cout << "REMOVE" << endl;
-        r.remove_provides(ph);
-    }
+    L.packagesToAnalyse = test_pack;
+    std::cout << L.packagesToAnalyse.size() << std::endl;
+
+    auto P = PatchMaker();
+    P.packagesToPatch = packages;
+    P.dependenciesToDelete = L.criteriaChecking(CH);
+    P.loadSpecs(PatchMaker::specLoader::apiLoader);
+    P.makePatch("./Patches3/");
 
     return 0;
 }

@@ -29,6 +29,9 @@ Api::response Api::getReadBuffer(std::string req) {
         
         curl_easy_cleanup(curl);
     }
+    
+    // sleep на 1000 мс те на 1с
+    usleep(1000 * 1000);
 
     Json::Value root;
     Json::Reader reader;
@@ -43,7 +46,7 @@ Api::response Api::getReadBuffer(std::string req) {
 
 /// @brief 
 /// @return 
-std::vector<std::string> Api::getActivePackages() {
+std::vector<std::string> Api::getActiveBranches() {
     //std::string req = "https://rdb.altlinux.org/api/packageset/active_packagesets";
     std::string req = apiURL+"/api/packageset/active_packagesets";
     Json::Value root = getReadBuffer(req).root;
@@ -57,9 +60,42 @@ std::vector<std::string> Api::getActivePackages() {
     return packagesets;
 }
 
-std::vector<Api::checked_package> Api::checkPackage(std::vector<std::string> pnames, std::string branch) {
+std::set<std::string> Api::getBranchPackageNames(std::string branch) {
+    //std::string req = "https://rdb.altlinux.org/api/packageset/active_packagesets";
+    std::string host = apiURL+"/api/export/sitemap_packages/";
+    std::string req = host + branch;
+    std::set<std::string> result;
+    auto root = getReadBuffer(req).root;
+    for (auto pack : root["packages"]) {
+        result.insert(pack["name"].asString());
+    }
+    return result;
+}
+
+std::vector<Aux::checked_package> Api::checkPackage(std::vector<std::string> pnames, std::string branch, Cacher& ch) {
+    std::vector<Aux::checked_package> out;
+
+    // ------------------------ Кеширование TODO
+    std::vector<std::string> not_cache_pnames; // собираем список пакетов, которых нет в кеше
+
+    std::cout << "Api start " << pnames.size() <<"\n";
+
+    for (auto pn: pnames)
+    {
+        auto resp = ch.getCache(pn);
+        if (resp.has_value()) {
+            auto val = resp.value();
+            out.push_back(val);
+        } else {
+            not_cache_pnames.push_back(pn);
+        }   
+    }
+    pnames = not_cache_pnames;
+
+    // ------------------------
+     
+    
     std::string host = apiURL+"/api/package/what_depends_src?";
-    std::vector<Api::checked_package> out;
     std::string oss_test;
     if (!pnames.empty()) {
         for (int i = 0; i < pnames.size() - 1; i++) { 
@@ -70,15 +106,10 @@ std::vector<Api::checked_package> Api::checkPackage(std::vector<std::string> pna
         return out;
     }
 
-
-    
-   // std::cout << "Проверяются пакеты: " << oss.str() << " !!!!!!!!!!!!!!!"<< std::endl;
     if (oss_test == "") {
         return out;
     }
     std::string req = host + "packages=" + oss_test + "&branch=" + branch + "&depth=3&dptype=both&finite_package=false&oneandhalf=false&use_last_tasks=false";
-
-    std::cout << pnames.size() << " Проверяются пакеты: " << req << " !!!!!!!!!!!!!!!"<< std::endl;
 
     Api::response resp = getReadBuffer(req);
     long http_code = resp.http_code;
@@ -87,27 +118,31 @@ std::vector<Api::checked_package> Api::checkPackage(std::vector<std::string> pna
 
     if (http_code == 200) {
         for(auto packageName: pnames) {
-            bool can_delete = false;
+            bool isFound = false; // проверяет на то что пакет нашелся у кого-то в requires
             for (auto S: resp.root["dependencies"]) {
                 for (auto name: S["requires"]) {
                     if (name == packageName) {
-                        checked_package a;
+                        // тк пакет packageName есть у кого-то в requires ставим can_delete false
+                        Aux::checked_package a;
                         a.can_delete = false;
                         a.http_code = 200;
                         a.name = packageName;
                         out.push_back(a);
-                        can_delete = true;
+                        isFound = true;
                         continue;
                     }
                 }
-                if(can_delete) {
+                
+                if(isFound) {
                     continue;
                 }
             }
-            if (!can_delete) {
-                checked_package a;
-                a.can_delete = true;
-                a.http_code = 404;
+
+            if (!isFound) {
+                // тк ни у кого в requires нет такого пакета то can_delete true
+                Aux::checked_package a;
+                a.can_delete = true; 
+                a.http_code = 200;
                 a.name = packageName;
                 out.push_back(a);
             }
@@ -116,17 +151,21 @@ std::vector<Api::checked_package> Api::checkPackage(std::vector<std::string> pna
     } else {
         std::cout << "Странный ответ от апи/прокси: " << http_code << " " << oss_test << std::endl;
     }
+
+    // 
+    for (auto pack: out) {
+        std::cout << "Api set cache\n";
+        ch.setCache(pack.name, pack);
+    } 
+    //  ----------------  
     return out;
 }
 
-
-
-std::vector<Api::checked_package> Api::divide_et_impera(std::vector<std::string> packagesNames, std::string branch) {
+std::vector<Aux::checked_package> Api::divide_et_impera(std::vector<std::string> packagesNames, std::string branch, Cacher& ch) {
     // divide et impera
     // Выборка по 10 пакетов, чтобы предотваратить слишком длинные запросы (хорошо бы вынести как регулируемый параметр)
-    std::cout << packagesNames.size() << "  " << "!!!!!!!!!!!!!!" << std::endl;
     if (packagesNames.size() > 80) {
-        std::vector<Api::checked_package> result;
+        std::vector<Aux::checked_package> result;
         for (int i = 0; i < packagesNames.size();) {
             std::vector<std::string> pnames;
             auto index = std::min(packagesNames.size(), i + size_t(80));
@@ -134,12 +173,10 @@ std::vector<Api::checked_package> Api::divide_et_impera(std::vector<std::string>
                 pnames.push_back(packagesNames[i]);
             }
             std::cout << pnames.size() << std::endl;
-            auto res = checkPackage(pnames, branch);
+            auto res = checkPackage(pnames, branch, ch);
             for (auto pack : res) {
-               // std::cout << pack.name << " " << pack.http_code ;
                 result.push_back(pack);
             }
-          //  std::cout << std::endl << std::endl;
         }
         return result;
     }
@@ -147,7 +184,7 @@ std::vector<Api::checked_package> Api::divide_et_impera(std::vector<std::string>
     // TODO: если пакет с данным именем присутствует в Requires api то false иначе true
     // https://rdb.altlinux.org/api/package/what_depends_src?packages=python3-dev&branch=p10&depth=5&dptype=both&finite_package=false&oneandhalf=false&use_last_tasks=false
 
-    return checkPackage(packagesNames, branch);
+    return checkPackage(packagesNames, branch, ch);
 }
 
 std::optional<std::string> Api::getHash(std::string branch, std::string name){
@@ -177,3 +214,20 @@ std::optional<std::pair<long long, std::string>> Api::getDate(std::string branch
     std::pair<int, std::string> date = {result.root["buildtime"].asInt64(), result.root["task_date"].asString()};
     return date;
 }
+
+std::optional<std::string> Api::getSpecFile(std::string branch, std::string name)
+{   
+    std::string host = apiURL+"/api/package/specfile_by_name";
+    std::string req = host + "?" + "branch=" + branch + "&" + "name=" + name;
+
+    auto resp = getReadBuffer(req);
+    if (resp.http_code != 200) {
+        return std::nullopt;
+    }
+
+    std::string content = resp.root["specfile_content"].asString();
+    std::string result = base64_decode(content);
+
+    return result;
+}
+
