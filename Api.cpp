@@ -31,7 +31,7 @@ Api::response Api::getReadBuffer(std::string req) {
     }
     
     // sleep на 1000 мс те на 1с
-    usleep(10000 * 1000);
+    usleep(1000 * 1000);
 
     Json::Value root;
     Json::Reader reader;

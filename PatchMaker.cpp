@@ -38,17 +38,6 @@ std::string PatchMaker::generatePatch(std::string spec, std::vector<Dependency>&
             std::string ex;
 
             if (ds[i].version == "") {
-                version = "(( )*(<|>|=|<=|>=)( )+[^ ,\n]*)";
-            }        
-
-            ex = "(" + prepareDependencyType(ds[i].type) + " .*)";
-            ex += "(" + ds[i].dependencyName + ")";
-            ex += version + "((, )|( ))";
-            std::cout << ex << std::endl;
-            std::regex expr(ex, std::regex::icase);
-            spec = std::regex_replace(spec, expr, "$1");
-
-            if (ds[i].version == "") {
                 version = "([^\n])*";
             }
 
@@ -65,6 +54,17 @@ std::string PatchMaker::generatePatch(std::string spec, std::vector<Dependency>&
             std::cout << ex << std::endl;
             std::regex expr3(ex, std::regex::icase);
             spec = std::regex_replace(spec, expr3, "$1\n");
+
+            if (ds[i].version == "") {
+                version = "(( )*(<|>|=|<=|>=)( )+[^ ,\n]*)";
+            }        
+
+            ex = "(" + prepareDependencyType(ds[i].type) + " .*)";
+            ex += "(" + ds[i].dependencyName + ")";
+            ex += version + "((, )|( ))";
+            std::cout << ex << std::endl;
+            std::regex expr(ex, std::regex::icase);
+            spec = std::regex_replace(spec, expr, "$1");
         } while(old_spec != spec);
     }
 

@@ -206,7 +206,7 @@ int main(int argc, char *argv[]) {
     P.packagesToPatch = packages;
     P.dependenciesToDelete = L.criteriaChecking(CH);
     P.loadSpecs(PatchMaker::specLoader::apiLoader);
-    P.makePatch("./Patches2/");
+    P.makePatch("./Patches3/");
 
     return 0;
 }
