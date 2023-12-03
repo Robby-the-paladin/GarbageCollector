@@ -36,3 +36,10 @@ void Cacher::setCache(std::string key, Aux::checked_package pack)
     ph.addDeprecated(key, pack.can_delete);
     ch_mutex.unlock();
 }
+
+void Cacher::setCache(std::string key, bool can_delete)
+{   
+    ch_mutex.lock();
+    ph.addDeprecated(key, can_delete);
+    ch_mutex.unlock();
+}

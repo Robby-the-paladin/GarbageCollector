@@ -131,7 +131,6 @@ std::vector<PackageDependencies> RpmHandler::getDependenciesForPackages(std::map
                             !(elem == "provides" && data_struct[i].dependencyName == packagesDependencies[std::string(str_name)].packageName) ) { 
                             
                             packagesDependencies[std::string(str_name)].dependencies.push_back(data_struct[i]);  
-                            // break;
                         }
                         
 
@@ -332,4 +331,103 @@ void RpmHandler::downloadClassicFile(std::string branch, std::string arch, std::
         resp = system((std::string("mv ./pkglist.classic ") + "./" + path + "/" + branch + "/pkglist.classic." + arch).c_str());
     }
     
+}
+
+std::set<std::string> RpmHandler::getAllProvides(std::string folder, std::string branch, 
+                                                               std::string classicName, std::string arch)
+{   
+    std::set<std::string> out;
+    std::string name =  "%{NAME}";
+    std::string prov = "%{provides}";
+    std::string format =  std::string("[\\{%{") + "provides" + "},,%{" + "provide" + "version}," + "provides" + "\\} ]";
+
+    std::string fileName = folder + "/" + branch + "/" + classicName + arch;
+    FD_t Fd = getCalssicFileDescriptor(fileName);
+    if (Ferror(Fd)) {
+        downloadClassicFile(branch, arch, folder);
+    }
+    Fclose(Fd);
+
+    Fd = getCalssicFileDescriptor(fileName);
+    if (Ferror(Fd)) {
+        fprintf(stderr, "%s: %s\n", fileName, Fstrerror(Fd));
+        return {};
+    }
+
+    Header h;
+    while ((h = headerRead(Fd, HEADER_MAGIC_YES)) != NULL) {
+        const char *err = "unknown error";
+        char *str_format = headerFormat(h, format.c_str(), &err);
+        if (str_format == NULL) {
+            fprintf(stderr, "%s: %s: %s:\n", fileName, err, format.c_str());
+        }
+        else {
+            auto data_struct = setStrToStructsDependencies(string_to_set(str_format));
+            
+            for(auto pack: data_struct) {
+                out.insert(pack.dependencyName);
+            }
+
+            free(str_format);
+        }
+
+        headerFree(h);
+    }
+    
+    Fclose(Fd);
+    return out;
+}
+
+std::map<std::string, std::set<std::string>> RpmHandler::packagesProvides()
+{   
+    // словарь [имя пакета, структура PackageDependencies те его зависимости в спек файле]
+    std::map<std::string, std::set<std::string>> packagesDependencies;
+    
+    const char *progname = "";
+    std::set<std::string> words;
+    words.insert("provides");
+    for (auto& elem: words) {
+        std::string format =  "[\\{%{" + elem + "},,%{" + elem.substr(0,elem.size()-1) + "version}," + elem + "\\} ]";
+        std::string name =  "%{NAME}";
+        std::vector<char*> pkglists = {"pkglist.classic.x86_64", "pkglist.classic.noarch"};
+        for (auto arch: classicArches) {
+            auto pkglist = constNameClassic + arch;
+            FD_t Fd = getCalssicFileDescriptor(pkglist);
+            if (Ferror(Fd)) {
+                fprintf(stderr, "%s: %s: %s\n", progname, pkglist, Fstrerror(Fd));
+                continue;
+            }
+            Header h;
+            /*HEADER_MAGIC_YES*/
+            while ((h = headerRead(Fd, HEADER_MAGIC_YES)) != NULL) {
+                const char *err = "unknown error";
+                char *str_format = headerFormat(h, format.c_str(), &err);
+                char *str_name = headerFormat(h, name.c_str(), &err);
+                if (str_name == NULL || str_format == NULL) {
+                    fprintf(stderr, "%s: %s: %s: %s:\n", progname, pkglist, err, format.c_str());
+                }
+                else {
+                    auto data_struct = setStrToStructsDependencies(string_to_set(str_format));
+                    for (size_t i = 0; i < data_struct.size(); i++)
+                    {
+                        if (packagesDependencies.find(std::string(str_name)) != packagesDependencies.end() && 
+                            !(elem == "provides" && str_name == data_struct[i].dependencyName) ) { 
+                            
+                            packagesDependencies[std::string(str_name)].insert(data_struct[i].dependencyName);  
+                        }
+                    }
+
+                    
+                    free(str_format);
+                    free(str_name);
+                }
+
+                headerFree(h);
+            }
+            
+            Fclose(Fd);
+        }
+    }
+
+    return packagesDependencies;
 }

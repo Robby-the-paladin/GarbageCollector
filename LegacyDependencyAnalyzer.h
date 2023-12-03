@@ -10,23 +10,12 @@
 #include <mutex>
 #include "RpmHandler.h"
 #include "Api.h"
-
+#include "WDS.h"
 
 
 
 class LegacyDependencyAnalyzer {
     public:        
-        // А точно безоавсно хранить админский ключ в строке на гите, и так сойдет ...
-        // Информация для соединения с БД postgresql
-        std::string postgreConnStr = "user=doadmin password=AVNS_xMD70wwF41Btbfo6iaz host=db-postgresql-fra1-79796-do-user-14432859-0.b.db.ondigitalocean.com port=25060 dbname=test target_session_attrs=read-write";
-        //std::string postgreConnStr = "user=edgar password=genius host=host.docker.internal port=5432 dbname=test target_session_attrs=read-write";
-        
-        // Прокся 
-        std::string apiURL = "http://64.226.73.174:8080";
-
-        //не прокся (медленно) 
-        //std::string apiURL = "https://rdb.altlinux.org";
-
         // список старых веток для анализа
         std::vector<std::string> oldBranches = {"4.0", "4.1", "p5", "p6", "p7", "p8"};
 
@@ -48,12 +37,17 @@ class LegacyDependencyAnalyzer {
 
         // проверяет зависимости из unicDependecies на критерии (присутствие в старых репозиториях и неиспользуемость в актульном)
         std::map<std::string,std::vector<Dependency>> criteriaChecking(Cacher& ch, std::string branch = "Sisyphus");
+    
+        // возвращает все provides, которые есть в oldBranches и отсутствуют в проверяемой ветке
+        std::set<std::string> getOldProvides();
     private:
         // список уникальных зависимостей генерируемых методом getAllDependencies
         std::set<Dependency> unicDependecies;
 
         //
         std::set<std::string> oldPackagesNames;
+        // список уникальных старых provides, которых нет в проверяемой ветке
+        std::set<std::string> oldDepProvides;
 
         // возвращает множество пакетов, которые есть в oldBranches и отсутствуют в проверяемой ветке
         std::set<std::string> getOldPackagesNames();

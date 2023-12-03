@@ -26,7 +26,7 @@ std::map<std::string,std::vector<Dependency>> LegacyDependencyAnalyzer::criteria
         }
         
         std::map<std::string, bool> checkOldDeps; //  проверка на то что пакет есть в oldPackNames
-        for (auto oldDep: dependencyPacksNames) {
+        for (auto oldDep: dependencyPacksNames) { // oldDepProvides
             if (obsolescenceChecking(oldDep)) {
                 // те пакет есть в старых репозиториях и отсутствует в актуальном
                 checkOldDeps[oldDep] = true;
@@ -73,6 +73,29 @@ std::set<std::string> LegacyDependencyAnalyzer::getOldPackagesNames()
     return oldPackages;
 }
 
+std::set<std::string> LegacyDependencyAnalyzer::getOldProvides()
+{   
+    std::set<std::string> oldProvides;
+    for (auto br: oldBranches)
+    {
+        for(auto arch: classicArches) {
+            auto getPack = RpmHandler::getAllProvides(folderClassicFiles, br, constNameClassic, arch);
+            oldProvides.insert(getPack.begin(), getPack.end());
+        }
+    }
+
+    auto dep =  RpmHandler::getDependenciesForPackages(packagesToAnalyse);
+    for (auto pack: dep) {
+        for (auto dep: pack.dependencies) {
+            if (dep.type == "provides")
+                oldProvides.erase(dep.dependencyName);
+        }
+    }
+
+    oldDepProvides = oldProvides;
+    return oldProvides;
+}
+
 bool LegacyDependencyAnalyzer::isAnythingDependsSrc(std::string packageName, std::string branch, Cacher& ch)
 {
     auto resps = Api::divide_et_impera({packageName}, branch, ch); // тк возвращается вектор то возьмем 0 элемент
@@ -83,8 +106,8 @@ bool LegacyDependencyAnalyzer::isAnythingDependsSrc(std::string packageName, std
 
 std::map<std::string, bool> LegacyDependencyAnalyzer::isAnythingDependsSrc(std::vector<std::string> packagesNames, std::string branch, Cacher& ch)
 {   
-
     auto resps = Api::divide_et_impera(packagesNames, branch, ch);
+
     std::map<std::string, bool>  out;
     for (auto checkedPack: resps)
     {

@@ -16,6 +16,7 @@ class Cacher
         std::optional<Aux::checked_package> getCache(std::string key);
         // задает значение кеша по key
         void setCache(std::string key, Aux::checked_package pack);
+        void setCache(std::string key, bool can_delete);
     private:
         // работа с БД
         PostgreHandler ph;
