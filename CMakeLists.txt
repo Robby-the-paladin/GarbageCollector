@@ -38,6 +38,7 @@ add_executable(GarbageCollector
         "PatchMaker.h" "PatchMaker.cpp"
         "Config.h" "Config.cpp"
         "Aux.h"
+        "WDS.h" "WDS.cpp"
          )
 
 include_directories(${JSONCPP_INCLUDE_DIR})
