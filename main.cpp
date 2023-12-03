@@ -156,6 +156,8 @@ bool process_flags(int argc, char *argv[]) {
 int main(int argc, char *argv[]) {
     if (!process_flags(argc, argv))
         return 0;
+    Aux::init(); // инициализация глобальных констант
+
     auto list_error = get_list_errors();
     if (ignore_error_pkgs)
         list_error.clear();

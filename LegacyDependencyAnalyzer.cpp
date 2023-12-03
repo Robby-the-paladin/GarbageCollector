@@ -13,6 +13,7 @@ std::vector<PackageDependencies> LegacyDependencyAnalyzer::getAllDependencies()
 std::map<std::string,std::vector<Dependency>> LegacyDependencyAnalyzer::criteriaChecking(Cacher& ch, std::string branch)
 {
     std::set<std::string> oldPackNames = getOldPackagesNames();
+    getOldProvides();
     auto packDependencies = RpmHandler::getDependenciesForPackages(packagesToAnalyse);
 
     std::map<std::string,std::vector<Dependency>> oldDepInPacks; // мапа стаарых зависимостей в пакете
@@ -27,11 +28,12 @@ std::map<std::string,std::vector<Dependency>> LegacyDependencyAnalyzer::criteria
         
         std::map<std::string, bool> checkOldDeps; //  проверка на то что пакет есть в oldPackNames
         for (auto oldDep: dependencyPacksNames) { // oldDepProvides
-            if (obsolescenceChecking(oldDep)) {
-                // те пакет есть в старых репозиториях и отсутствует в актуальном
-                checkOldDeps[oldDep] = true;
+            if (Aux::is_virtual(oldDep)) {
+                // если виртуальный пакет был кем-то провайден в старых репозиториях и отсутствует в актуальном
+                checkOldDeps[oldDep] = oldDepProvides.count(oldDep);
             } else {
-                checkOldDeps[oldDep] = false;
+                // те пакет есть в старых репозиториях и отсутствует в актуальном
+                checkOldDeps[oldDep] = obsolescenceChecking(oldDep);
             }
         }
         
@@ -106,7 +108,8 @@ bool LegacyDependencyAnalyzer::isAnythingDependsSrc(std::string packageName, std
 
 std::map<std::string, bool> LegacyDependencyAnalyzer::isAnythingDependsSrc(std::vector<std::string> packagesNames, std::string branch, Cacher& ch)
 {   
-    auto resps = Api::divide_et_impera(packagesNames, branch, ch);
+    // auto resps = Api::divide_et_impera(packagesNames, branch, ch);
+    auto resps = wds::has_active_dependencies(packagesNames, ch);
 
     std::map<std::string, bool>  out;
     for (auto checkedPack: resps)

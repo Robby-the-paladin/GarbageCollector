@@ -30,14 +30,6 @@ public:
 
         actual_provides = RpmHandler::packagesProvides();
 
-        const char* apt_cmd = std::string("aptitude search '~v'").c_str();
-        auto dependencies = customSplit(exec(apt_cmd), '\n');
-        for (auto dep: dependencies) {
-            for (auto elem: customSplit(dep, ' ')) {
-                virtual_packages.insert(elem);
-            }
-        }
-
         for (auto pack: actual_provides) {
             for(auto pack_p: pack.second) {
                 virtual_parents[pack_p].insert(pack.first);
@@ -45,7 +37,7 @@ public:
         }
     };
 
-    static std::vector<Aux::checked_package> has_active_dependencies(std::set<std::string> packagesNames, Cacher& ch);
+    static std::vector<Aux::checked_package> has_active_dependencies(std::vector<std::string> packagesNames, Cacher& ch);
 
     static bool has_aptitude_dependencies(std::string package_name);
 
@@ -54,10 +46,8 @@ private:
     static inline std::map<std::string, std::set<std::string>> actual_provides;
     static inline std::map<std::string, std::set<std::string>> virtual_parents;
     static inline std::set<std::string> old_provides;
-    static inline std::set<std::string> virtual_packages;
+    // static inline std::set<std::string> virtual_packages;
 
-    static std::string exec(const char* cmd);
-    static std::vector<std::string> customSplit(std::string str, char separator);
     static bool _has_active_dependencies(std::string package_name,
                                          Cacher& ch, std::set<std::string>& was);
 };
