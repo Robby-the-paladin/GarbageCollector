@@ -76,11 +76,11 @@ void PatchMaker::makePatch(std::string patch_destination) {
 	for (int i = 0; i < packagesToPatch.size(); i++) {
         std::cout << "Patching package " + packagesToPatch[i] << "\n";
         std::ofstream spec;
-        spec.open("Specfile.spec");
+        spec.open(packagesToPatch[i] + "~.spec");
 		spec << specs[packagesToPatch[i]];
 
         std::ofstream patched;
-        patched.open("PatchedSpecfile.spec");
+        patched.open(packagesToPatch[i] + ".spec");
 
         // ИГНОРИРУЕМ ВЕРСИИ ДО ЛУЧШИХ ВРЕМЕН!!!!
         for (int j = 0; j < dependenciesToDelete[packagesToPatch[i]].size(); j++) {
@@ -94,7 +94,7 @@ void PatchMaker::makePatch(std::string patch_destination) {
         if (patched_str != specs[packagesToPatch[i]]) {
             spec.close();
             patched.close();
-            std::cout << "diff -Naru Specfile.spec PatchedSpecfile.spec > " + patch_destination + packagesToPatch[i] + ".patch" << std::endl;
+            std::cout << "diff -Naru " + packagesToPatch[i] + ".spec~ " + packagesToPatch[i] + ".spec > " + patch_destination + packagesToPatch[i] + ".patch" << std::endl;
             int resp = system(("diff -Naru Specfile.spec PatchedSpecfile.spec > " + patch_destination + packagesToPatch[i] + ".patch").c_str());
             if (resp != 0) {
                 std::cout << "Error while making patch for " << packagesToPatch[i] << ": " << resp << std::endl;
