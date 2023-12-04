@@ -205,8 +205,12 @@ int main(int argc, char *argv[]) {
     std::cout << L.packagesToAnalyse.size() << std::endl;
 
     auto P = PatchMaker();
-    P.packagesToPatch = packages;
     P.dependenciesToDelete = L.criteriaChecking(CH);
+    P.packagesToPatch = L.packagesToFix;
+    cout << "L.pakagesToFix.size(): " << L.packagesToFix.size();
+    for (int i = 0; i < L.packagesToFix.size(); i++) {
+        cout << L.packagesToFix[i] << std::endl;
+    }
     P.loadSpecs(PatchMaker::specLoader::apiLoader);
     P.makePatch("./Patches3/");
 

@@ -27,6 +27,9 @@ class LegacyDependencyAnalyzer {
         // список пакетов для анализа
         std::map<std::string, std::pair<std::string, std::string>> packagesToAnalyse;
 
+        // список пакетов для фикса
+        std::vector<std::string> packagesToFix;
+
         LegacyDependencyAnalyzer(){};
 
         // устанавливает список пакетов для анализа из ветки. По умолчанию sisyphus

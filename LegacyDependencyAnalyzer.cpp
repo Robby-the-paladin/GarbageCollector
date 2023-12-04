@@ -18,6 +18,7 @@ std::map<std::string,std::vector<Dependency>> LegacyDependencyAnalyzer::criteria
 
     std::map<std::string,std::vector<Dependency>> oldDepInPacks; // мапа стаарых зависимостей в пакете
 
+    std::set<std::string> fix;
     for (auto pack: packDependencies) {
         oldDepInPacks[pack.packageName] = {};
 
@@ -50,9 +51,13 @@ std::map<std::string,std::vector<Dependency>> LegacyDependencyAnalyzer::criteria
             if (checkOld && !checkDepSrc) {
                 oldDepInPacks[pack.packageName].push_back(oldPack);
                 std::cout << pack.packageName << " delete => " << oldPack.dependencyName << " " << oldPack.type << std::endl;
+                fix.insert(pack.packageName);
             }
         }
     }
+    // pakagesToFix = std::vector<std::string>(fix.begin(), fix.end());
+    packagesToFix.resize(fix.size());
+    std::copy(fix.begin(), fix.end(), packagesToFix.begin());
     return oldDepInPacks;
 }
 
