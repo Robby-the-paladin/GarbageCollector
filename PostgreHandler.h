@@ -23,6 +23,8 @@ public:
 
     // получить значение по имени пакета или nullopt 
     std::optional<bool> getDeprecated(std::string name);
+private:
+    std::string table_name;
 };
 
 

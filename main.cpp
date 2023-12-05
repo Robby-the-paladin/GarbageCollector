@@ -175,6 +175,9 @@ int main(int argc, char *argv[]) {
     set<std::string> test;
     int index = 0;
     for (auto it = t.begin(); it != t.end(); it++) {
+        if (*it == "boost") {
+            std::cout << "boost " << packageExamined(*it, pack_regexs, list_error) << "\n";
+        }
         if (!packageExamined(*it, pack_regexs, list_error)) {
             continue;
         }
@@ -185,11 +188,13 @@ int main(int argc, char *argv[]) {
    
     test = check_error(test, list_error);
 
+    std::cout << "analysingBranchPackages   " << test.size() << " " << *(test.begin()) << std::endl;
     L.analysingBranchPackages(test);
  
 
     std::vector<std::string> packages;
     std::map<std::string, std::pair<std::string, std::string>> test_pack;
+    std::cout << "packagesToAnalyse " << L.packagesToAnalyse.size() << std::endl;
     for(auto pack: L.packagesToAnalyse) {
         cout << pack.second.first << endl;
         packages.push_back(pack.second.first);
@@ -212,7 +217,7 @@ int main(int argc, char *argv[]) {
         cout << L.packagesToFix[i] << std::endl;
     }
     P.loadSpecs(PatchMaker::specLoader::apiLoader);
-    P.makePatch("./Patches3/");
+    P.makePatch("./Patches3_TEST/");
 
     return 0;
 }

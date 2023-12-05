@@ -33,6 +33,7 @@ std::map<std::string, std::pair<std::string, std::string>> RpmHandler::getAllPac
     std::string name =  "%{NAME}";
     std::string src_name = "%{SOURCERPM}";
     std::string release = "%{RELEASE}";
+    std::string version = "%{VERSION}";
     // зашрузка classic файлов для branch если файлы отсутствуют
     for (auto arch: classicArches)
     {
@@ -60,18 +61,23 @@ std::map<std::string, std::pair<std::string, std::string>> RpmHandler::getAllPac
             char *str_name = headerFormat(h, name.c_str(), &err);
             char *src_str_name = headerFormat(h, src_name.c_str(), &err);
             char *str_release = headerFormat(h, release.c_str(), &err);
+            char *str_version = headerFormat(h, version.c_str(), &err);
             if (str_name == NULL) {
                 fprintf(stderr, "%s: %s:\n", pkglist, err);
             }
             else {
                 auto name = ReplaceAll(std::string(str_name), "+", "%2B");
-                if (packNames.find(name) != packNames.end()){
-                    srcNameToPackName[src_str_name] = {name, str_release};
+                auto source_name = ReplaceAll(std::string(src_str_name), std::string("-")+str_version+"-"+str_release+".src.rpm", "");
+                // std::cout << name << "  " << source_name << std::endl;
+                if (packNames.find(source_name) != packNames.end()){
+                    srcNameToPackName[src_str_name] = {source_name, str_release};
                 }
 
                 out.push_back(ReplaceAll(std::string(str_name), "+", "%2B"));
                 free(str_name);
                 free(src_str_name);
+                free(str_release);
+                free(str_version);
             }
 
             headerFree(h);
@@ -161,6 +167,8 @@ std::set<std::string> RpmHandler::getPackageFromClassicFileName(std::string fold
 {   
     std::set<std::string> out;
     std::string name =  "%{NAME}";
+    std::string release = "%{RELEASE}";
+    std::string version = "%{VERSION}";
 
     std::string fileName = folder + "/" + branch + "/" + classicName + arch;
     FD_t Fd = getCalssicFileDescriptor(fileName);
@@ -179,12 +187,18 @@ std::set<std::string> RpmHandler::getPackageFromClassicFileName(std::string fold
     while ((h = headerRead(Fd, HEADER_MAGIC_YES)) != NULL) {
         const char *err = "unknown error";
         char *str_name = headerFormat(h, name.c_str(), &err);
+        char *str_release = headerFormat(h, release.c_str(), &err);
+        char *str_version = headerFormat(h, version.c_str(), &err);
         if (str_name == NULL) {
             fprintf(stderr, "%s: %s:\n", fileName, err);
         }
         else {
+            // auto source_name = ReplaceAll(std::string(str_name), std::string("-")+str_version+"-"+str_release+".src.rpm", "");
+            std::cout << str_name << std::endl;
             out.insert(ReplaceAll(std::string(str_name), "+", "%2B"));
             free(str_name);
+            free(str_release);
+            free(str_version);
         }
 
         headerFree(h);

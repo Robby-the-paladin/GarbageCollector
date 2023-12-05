@@ -39,8 +39,8 @@ bool wds::_has_active_dependencies(std::string package_name, Cacher& ch, std::se
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // TODO сделать проверку по бранчу, который задает пользователь, а не по тому, который в системе
 bool wds::has_aptitude_dependencies(std::string package_name) {
-    const char* apt_cmd = std::string("aptitude search '~D" + package_name + "'").c_str();
-    auto dependencies = Aux::exec(apt_cmd);
+    std::string apt_cmd = std::string("aptitude search '~D" + package_name + "'");
+    auto dependencies = Aux::exec(apt_cmd.c_str());
     return !dependencies.empty();
 }
 

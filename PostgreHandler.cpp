@@ -3,9 +3,9 @@
 extern std::string postgreConnStr;
 
 PostgreHandler::PostgreHandler(): connect(pqxx::connection(postgreConnStr)) {
-   
+    table_name = "packages_what_dep_src_TEST";
     pqxx::work W(connect);
-    W.exec("CREATE TABLE IF NOT EXISTS packages_what_dep_src (name TEXT PRIMARY KEY, \"what_src\" boolean)");
+    W.exec("CREATE TABLE IF NOT EXISTS " + table_name + " (name TEXT PRIMARY KEY, \"what_src\" boolean)");
     W.commit();
 }
 
@@ -32,9 +32,9 @@ void PostgreHandler::reconnect() {
 bool PostgreHandler::addDeprecated(std::string name, bool data) {
     // getDeprecated(name, col, data);
     pqxx::work W(connect);
-    auto res = W.exec("SELECT *  FROM packages_what_dep_src WHERE name = '" + name + "'");
+    auto res = W.exec("SELECT *  FROM " + table_name + " WHERE name = '" + name + "'");
     if (res.begin() == res.end())
-        auto res = W.exec_params("INSERT INTO packages_what_dep_src VALUES ($1, $2)", name, data);
+        auto res = W.exec_params("INSERT INTO " + table_name + " VALUES ($1, $2)", name, data);
     W.commit();
     
     return true;
@@ -43,7 +43,7 @@ bool PostgreHandler::addDeprecated(std::string name, bool data) {
 
 std::optional<bool> PostgreHandler::getDeprecated(std::string name) {
     pqxx::work W(connect);
-    pqxx::result R (W.exec("SELECT what_src FROM packages_what_dep_src WHERE name = '" + name + "'"));
+    pqxx::result R (W.exec("SELECT what_src FROM " + table_name + " WHERE name = '" + name + "'"));
     W.commit();
 
     for (pqxx::result::const_iterator it = R.begin(); it != R.end(); it++ ) {

@@ -11,6 +11,7 @@
 #include <rpm/header.h>
 #include <rpm/rpmdb.h>
 #include <curl/curl.h>
+#include "Aux.h"
 
 // структура зависимость
 // dependencyName - название зависимости
